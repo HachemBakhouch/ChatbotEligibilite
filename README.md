@@ -1,22 +1,19 @@
-﻿# Chatbot d'Ã‰ligibilitÃ© aux Programmes Sociaux
+﻿# Chatbot d'Éligibilité aux Programmes Sociaux
 
-Ce projet implÃ©mente un chatbot intelligent capable de dÃ©terminer l'Ã©ligibilitÃ© des utilisateurs Ã  diffÃ©rents programmes sociaux (ALI, PLIE, ML) via des conversations vocales et textuelles.
+Ce projet implémente un chatbot intelligent capable de déterminer l'éligibilité des utilisateurs à différents programmes sociaux (ALI, PLIE, ML) via des conversations vocales et textuelles.
 
 ## Architecture
-
-Le systÃ¨me est basÃ© sur une architecture microservices:
-
-- **API Gateway**: Point d'entrÃ©e unique pour toutes les requÃªtes client
-- **Chatbot Service**: GÃ¨re la logique de conversation et l'Ã©tat
+Le système est basé sur une architecture microservices:
+- **API Gateway**: Point d'entrée unique pour toutes les requêtes client
+- **Chatbot Service**: Gère la logique de conversation et l'état
 - **STT Service**: Service de reconnaissance vocale (Speech-to-Text)
-- **NLP Service**: Traitement du langage naturel pour l'analyse d'intention et d'entitÃ©s
-- **Decision Tree Service**: Applique la logique d'arbre dÃ©cisionnel pour dÃ©terminer l'Ã©ligibilitÃ©
-- **PDF Service**: GÃ©nÃ¨re des rapports PDF Ã  partir des rÃ©sultats
+- **NLP Service**: Traitement du langage naturel pour l'analyse d'intention et d'entités
+- **Decision Tree Service**: Applique la logique d'arbre décisionnel pour déterminer l'éligibilité
+- **PDF Service**: Génère des rapports PDF à partir des résultats
 
 ## Installation
-
-1. Cloner le dÃ©pÃ´t
-2. Installer les dÃ©pendances pour chaque service:
+1. Cloner le dépôt
+2. Installer les dépendances pour chaque service:
    ```
    pip install -r [service]/requirements.txt
    ```
@@ -24,21 +21,18 @@ Le systÃ¨me est basÃ© sur une architecture microservices:
 4. Lancer les services individuellement ou via Docker Compose
 
 ## Utilisation
-
-Le chatbot peut Ãªtre intÃ©grÃ© dans:
+Le chatbot peut être intégré dans:
 - Une application web PHP Symfony
 - Une application mobile Ionic
 - Un site web WordPress
 
-Pour plus de dÃ©tails sur l'API, consulter la documentation dans le dossier `/docs`.
+Pour plus de détails sur l'API, consulter la documentation dans le dossier `/docs`.
 
-## DÃ©veloppement
-
+## Développement
 Pour contribuer au projet:
-1. Forker le dÃ©pÃ´t
-2. CrÃ©er une branche pour votre fonctionnalitÃ©
+1. Forker le dépôt
+2. Créer une branche pour votre fonctionnalité
 3. Soumettre une pull request
 
 ## Licence
-
-Confidentiel - Tous droits rÃ©servÃ©s
+Confidentiel - Tous droits réservés
