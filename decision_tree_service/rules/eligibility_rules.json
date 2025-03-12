@@ -1,0 +1,261 @@
+{
+  "states": {
+    "initial": {
+      "next": "consent",
+      "message": "Bonjour, je suis un chatbot qui peut vous aider à déterminer votre éligibilité aux programmes sociaux."
+    },
+    "consent": {
+      "next": "age_verification",
+      "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
+      "responses": {
+        "yes": {
+          "next": "age_verification",
+          "message": "Merci. Commençons par votre âge. Quel âge avez-vous ?"
+        },
+        "no": {
+          "next": "end",
+          "message": "Je comprends. Sans ces informations, je ne peux pas déterminer votre éligibilité. N'hésitez pas à revenir si vous changez d'avis.",
+          "is_final": true
+        }
+      }
+    },
+    "age_verification": {
+      "next": "rsa_verification",
+      "message": "Quel âge avez-vous ?",
+      "process": "extract_age",
+      "transitions": [
+        {
+          "condition": "age < 16",
+          "next": "not_eligible_age",
+          "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (âge)"
+        },
+        {
+          "condition": "age >= 16 and age <= 25.5",
+          "next": "rsa_verification_young",
+          "message": "Êtes-vous bénéficiaire du RSA ?"
+        },
+        {
+          "condition": "age > 25.5",
+          "next": "rsa_verification_adult",
+          "message": "Êtes-vous bénéficiaire du RSA ?"
+        }
+      ]
+    },
+    "rsa_verification": {
+      "next": "schooling_verification",
+      "message": "Êtes-vous bénéficiaire du RSA ?",
+      "responses": {
+        "yes": {
+          "next": "schooling_verification_young_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        },
+        "no": {
+          "next": "schooling_verification_young_no_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        }
+      }
+    },
+    "rsa_verification_young": {
+      "next": "schooling_verification_young",
+      "message": "Êtes-vous bénéficiaire du RSA ?",
+      "responses": {
+        "yes": {
+          "next": "schooling_verification_young_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        },
+        "no": {
+          "next": "schooling_verification_young_no_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        }
+      }
+    },
+    "schooling_verification_young_rsa": {
+      "next": "city_verification_young_rsa",
+      "message": "Êtes-vous scolarisé actuellement ?",
+      "responses": {
+        "yes": {
+          "next": "city_verification_young_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        },
+        "no": {
+          "next": "city_verification_young_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        }
+      }
+    },
+    "city_verification_young_rsa": {
+      "next": "result",
+      "message": "Dans quelle ville habitez-vous ?",
+      "process": "extract_city",
+      "transitions": [
+        {
+          "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
+          "next": "eligible_ali",
+          "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+          "is_final": true,
+          "eligibility_result": "ALI"
+        },
+        {
+          "condition": "True",
+          "next": "not_eligible_city",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (ville)"
+        }
+      ]
+    },
+    "schooling_verification_young_no_rsa": {
+      "next": "city_verification_young_no_rsa",
+      "message": "Êtes-vous scolarisé actuellement ?",
+      "responses": {
+        "yes": {
+          "next": "not_eligible_schooling",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes si vous êtes scolarisé et ne bénéficiez pas du RSA.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (scolarisation)"
+        },
+        "no": {
+          "next": "city_verification_young_no_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        }
+      }
+    },
+    "city_verification_young_no_rsa": {
+      "next": "result",
+      "message": "Dans quelle ville habitez-vous ?",
+      "process": "extract_city",
+      "transitions": [
+        {
+          "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'villetaneuse', 'ile-saint-denis']",
+          "next": "eligible_ml",
+          "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+          "is_final": true,
+          "eligibility_result": "ML"
+        },
+        {
+          "condition": "True",
+          "next": "not_eligible_city",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (ville)"
+        }
+      ]
+    },
+    "rsa_verification_adult": {
+      "next": "schooling_verification_adult",
+      "message": "Êtes-vous bénéficiaire du RSA ?",
+      "responses": {
+        "yes": {
+          "next": "schooling_verification_adult_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        },
+        "no": {
+          "next": "schooling_verification_adult_no_rsa",
+          "message": "Êtes-vous scolarisé actuellement ?"
+        }
+      }
+    },
+    "schooling_verification_adult_rsa": {
+      "next": "city_verification_adult_rsa",
+      "message": "Êtes-vous scolarisé actuellement ?",
+      "responses": {
+        "yes": {
+          "next": "city_verification_adult_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        },
+        "no": {
+          "next": "city_verification_adult_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        }
+      }
+    },
+    "city_verification_adult_rsa": {
+      "next": "result",
+      "message": "Dans quelle ville habitez-vous ?",
+      "process": "extract_city",
+      "transitions": [
+        {
+          "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
+          "next": "eligible_ali",
+          "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+          "is_final": true,
+          "eligibility_result": "ALI"
+        },
+        {
+          "condition": "True",
+          "next": "not_eligible_city",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (ville)"
+        }
+      ]
+    },
+    "schooling_verification_adult_no_rsa": {
+      "next": "city_verification_adult_no_rsa",
+      "message": "Êtes-vous scolarisé actuellement ?",
+      "responses": {
+        "yes": {
+          "next": "city_verification_adult_no_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        },
+        "no": {
+          "next": "city_verification_adult_no_rsa",
+          "message": "Dans quelle ville habitez-vous ?"
+        }
+      }
+    },
+    "city_verification_adult_no_rsa": {
+      "next": "result",
+      "message": "Dans quelle ville habitez-vous ?",
+      "process": "extract_city",
+      "transitions": [
+        {
+          "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'ile-saint-denis', 'la-courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
+          "next": "eligible_plie",
+          "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
+          "is_final": true,
+          "eligibility_result": "PLIE"
+        },
+        {
+          "condition": "True",
+          "next": "not_eligible_city",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (ville)"
+        }
+      ]
+    },
+    "eligible_ali": {
+      "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+      "is_final": true,
+      "eligibility_result": "ALI"
+    },
+    "eligible_ml": {
+      "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+      "is_final": true,
+      "eligibility_result": "ML"
+    },
+    "eligible_plie": {
+      "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
+      "is_final": true,
+      "eligibility_result": "PLIE"
+    },
+    "not_eligible_age": {
+      "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
+      "is_final": true,
+      "eligibility_result": "Non éligible (âge)"
+    },
+    "not_eligible_city": {
+      "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+      "is_final": true,
+      "eligibility_result": "Non éligible (ville)"
+    },
+    "not_eligible_schooling": {
+      "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes avec votre statut de scolarisation actuel.",
+      "is_final": true,
+      "eligibility_result": "Non éligible (scolarisation)"
+    }
+  }
+}

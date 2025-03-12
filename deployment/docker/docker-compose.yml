@@ -1,0 +1,50 @@
+﻿version: '3'
+
+services:
+  api-gateway:
+    build: ./api_gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - CHATBOT_SERVICE_URL=http://chatbot-service:5001
+      - STT_SERVICE_URL=http://stt-service:5002
+      - NLP_SERVICE_URL=http://nlp-service:5003
+      - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
+      - PDF_SERVICE_URL=http://pdf-service:5005
+
+  chatbot-service:
+    build: ./chatbot_service
+    ports:
+      - "5001:5001"
+    environment:
+      - NLP_SERVICE_URL=http://nlp-service:5003
+      - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
+
+  stt-service:
+    build: ./stt_service
+    ports:
+      - "5002:5002"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  nlp-service:
+    build: ./nlp_service
+    ports:
+      - "5003:5003"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  decision-tree-service:
+    build: ./decision_tree_service
+    ports:
+      - "5004:5004"
+
+  pdf-service:
+    build: ./pdf_service
+    ports:
+      - "5005:5005"
+    volumes:
+      - pdf_reports:/app/reports
+
+volumes:
+  pdf_reports:
