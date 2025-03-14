@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from processors.openai_processor import OpenAIProcessor
@@ -7,6 +8,16 @@ from processors.openai_processor import OpenAIProcessor
 load_dotenv()
 
 app = Flask(__name__)
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": "*",
+            "allow_headers": "*",
+            "methods": ["GET", "POST", "OPTIONS"],
+        }
+    },
+)  # Activer CORS pour toutes les routes
 
 
 # Configuration
