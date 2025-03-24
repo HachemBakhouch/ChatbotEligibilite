@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let speechQueue = [];
 
     // API URL
-    const API_BASE_URL = 'http://localhost:5001'; // ou 'http://127.0.0.1:5001'
+    const API_BASE_URL = 'http://192.168.100.104:5001'; // ou 'http://127.0.0.1:5001'
 
     // Initialisation de la conversation
     function initConversation() {
@@ -153,6 +153,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Démarrer l'enregistrement audio
     function startRecording() {
+        // Vérifier si mediaDevices est supporté
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('API MediaDevices non supportée sur ce navigateur');
+            alert('Votre navigateur ne supporte pas l\'enregistrement audio. Veuillez utiliser un navigateur moderne comme Chrome ou Firefox, ou vérifier que vous êtes en HTTPS.');
+            return;
+        }
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
@@ -309,6 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
         generatePdfButton.disabled = true;
         generatePdfButton.textContent = 'Génération en cours...';
 
+        console.log(`Envoi de la requête à ${API_BASE_URL}/generate-pdf`);
+        console.log(`Conversation ID: ${conversationId}`);
+
         fetch(`${API_BASE_URL}/generate-pdf`, {
             method: 'POST',
             headers: {
@@ -320,9 +329,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 conversation_id: conversationId
             })
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Ajouter ce bloc pour gérer les erreurs HTTP
+                    console.error(`Erreur HTTP: ${response.status}`);
+                    return response.text().then(text => {
+                        console.error(`Réponse: ${text}`);
+                        throw new Error(`Erreur HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.file_url) {
+                    console.log(`PDF généré avec succès: ${data.file_url}`);
                     // Ouvrir le PDF dans un nouvel onglet
                     window.open(data.file_url, '_blank');
                 } else {
@@ -335,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => {
                 console.error('Error generating PDF:', error);
-                addBotMessage('Erreur lors de la génération du PDF. Veuillez réessayer.');
+                addBotMessage(`Erreur lors de la génération du PDF: ${error.message}. Veuillez réessayer.`);
 
                 // Réactiver le bouton
                 generatePdfButton.disabled = false;

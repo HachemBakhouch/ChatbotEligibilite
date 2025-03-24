@@ -48,7 +48,7 @@ class EligibilityEvaluator:
             "states": {
                 "initial": {
                     "next": "consent",
-                    "message": "Bonjour, je suis un chatbot qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
+                    "message": "Bonjour, je suis un CODEE qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
                 },
                 "consent": {
                     "next": "age_verification",

@@ -16,6 +16,7 @@ CORS(
         }
     },
 )  # Activer CORS pour toutes les routes
+os.makedirs(Config.PDF_OUTPUT_DIR, exist_ok=True)
 
 pdf_generator = PDFGenerator()
 

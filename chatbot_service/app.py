@@ -145,12 +145,18 @@ def generate_pdf():
         if not conversation:
             return jsonify({"error": "Conversation not found"}), 404
 
+        # Ajouter un log pour déboguer
+        print(f"Envoi de la requête au service PDF: {Config.PDF_SERVICE_URL}/generate")
+
         # Forward to PDF service
         pdf_response = requests.post(
             f"{Config.PDF_SERVICE_URL}/generate", json=conversation
         )
 
         if pdf_response.status_code != 200:
+            print(
+                f"Erreur du service PDF: {pdf_response.status_code} - {pdf_response.text}"
+            )
             return (
                 jsonify(
                     {
@@ -173,6 +179,10 @@ def generate_pdf():
             200,
         )
     except Exception as e:
+        import traceback
+
+        print(f"Exception dans generate_pdf: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 

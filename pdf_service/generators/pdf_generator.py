@@ -26,7 +26,7 @@ class PDFGenerator:
         # Add custom styles
         self.styles.add(
             ParagraphStyle(
-                name="Title",
+                name="CustomTitle",  # Changer 'Title' en 'CustomTitle'
                 parent=self.styles["Heading1"],
                 fontSize=16,
                 spaceAfter=12,
@@ -36,7 +36,7 @@ class PDFGenerator:
 
         self.styles.add(
             ParagraphStyle(
-                name="Section",
+                name="CustomSection",  # Changer 'Section' en 'CustomSection'
                 parent=self.styles["Heading2"],
                 fontSize=14,
                 spaceAfter=8,
@@ -46,7 +46,7 @@ class PDFGenerator:
 
         self.styles.add(
             ParagraphStyle(
-                name="Subsection",
+                name="CustomSubsection",  # Changer 'Subsection' en 'CustomSubsection'
                 parent=self.styles["Heading3"],
                 fontSize=12,
                 spaceAfter=6,
@@ -85,7 +85,8 @@ class PDFGenerator:
         # Title
         content.append(
             Paragraph(
-                "Rapport d'Éligibilité aux Programmes Sociaux", self.styles["Title"]
+                "Rapport d'Éligibilité aux Programmes Sociaux",
+                self.styles["CustomTitle"],
             )
         )
         content.append(Spacer(1, 12))
@@ -96,7 +97,9 @@ class PDFGenerator:
         content.append(Spacer(1, 12))
 
         # User Information
-        content.append(Paragraph("Informations Utilisateur", self.styles["Section"]))
+        content.append(
+            Paragraph("Informations Utilisateur", self.styles["CustomSection"])
+        )
 
         user_data = self._extract_user_data(data)
         user_table_data = [[k, v] for k, v in user_data.items()]
@@ -120,7 +123,9 @@ class PDFGenerator:
         content.append(Spacer(1, 12))
 
         # Eligibility Result
-        content.append(Paragraph("Résultat d'Éligibilité", self.styles["Section"]))
+        content.append(
+            Paragraph("Résultat d'Éligibilité", self.styles["CustomSection"])
+        )
 
         eligibility_result = data.get("eligibility_result", "Non déterminé")
         content.append(
@@ -131,7 +136,7 @@ class PDFGenerator:
         # Program Description
         if eligibility_result in ["ALI", "ML", "PLIE"]:
             content.append(
-                Paragraph("Description du Programme", self.styles["Section"])
+                Paragraph("Description du Programme", self.styles["CustomSection"])
             )
 
             program_desc = self._get_program_description(eligibility_result)
@@ -139,7 +144,7 @@ class PDFGenerator:
             content.append(Spacer(1, 12))
 
             # Next Steps
-            content.append(Paragraph("Prochaines Étapes", self.styles["Section"]))
+            content.append(Paragraph("Prochaines Étapes", self.styles["CustomSection"]))
 
             next_steps = self._get_next_steps(eligibility_result)
             for step in next_steps:
@@ -148,7 +153,9 @@ class PDFGenerator:
             content.append(Spacer(1, 12))
 
         # Conversation Summary
-        content.append(Paragraph("Résumé de la Conversation", self.styles["Section"]))
+        content.append(
+            Paragraph("Résumé de la Conversation", self.styles["CustomSection"])
+        )
 
         messages = data.get("messages", [])
         convo_table_data = [["Rôle", "Message"]]

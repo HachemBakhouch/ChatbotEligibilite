@@ -27,9 +27,11 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", Config.OPENAI_API_KEY)
 
 
+# Modifiez la fonction transcribe_audio pour gérer correctement les fichiers temporaires
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     """Transcribe audio to text"""
+    temp_filename = None
     try:
         print("Received transcription request")
         data = request.json
@@ -73,6 +75,7 @@ def transcribe_audio():
         print(f"File size: {os.path.getsize(temp_filename)}")
 
         try:
+            transcribed_text = ""
             with open(temp_filename, "rb") as audio_file:
                 files = {
                     "file": audio_file,
@@ -85,17 +88,10 @@ def transcribe_audio():
 
                 print(f"OpenAI response status: {response.status_code}")
 
-                # Clean up the temporary file
-                os.unlink(temp_filename)
-
                 if response.status_code == 200:
                     result = response.json()
                     transcribed_text = result.get("text", "")
                     print(f"Transcribed text: {transcribed_text}")
-                    return (
-                        jsonify({"text": transcribed_text, "language": language}),
-                        200,
-                    )
                 else:
                     print(f"OpenAI API error: {response.text}")
                     return (
@@ -106,14 +102,15 @@ def transcribe_audio():
                         ),
                         500,
                     )
+
+            # Retournez la réponse avant de tenter de supprimer le fichier
+            return jsonify({"text": transcribed_text, "language": language}), 200
+
         except Exception as api_err:
             print(f"Error during API request: {str(api_err)}")
             import traceback
 
             print(traceback.format_exc())
-            # Clean up the temporary file if it exists
-            if os.path.exists(temp_filename):
-                os.unlink(temp_filename)
             return jsonify({"error": f"API request error: {str(api_err)}"}), 500
     except Exception as e:
         print(f"Transcription error: {str(e)}")
@@ -121,6 +118,19 @@ def transcribe_audio():
 
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+    finally:
+        # Essayez de supprimer le fichier temporaire dans le bloc finally
+        if temp_filename and os.path.exists(temp_filename):
+            try:
+                # Attendez un court instant pour que le fichier soit libéré
+                import time
+
+                time.sleep(0.5)
+                os.unlink(temp_filename)
+                print(f"Temporary file deleted: {temp_filename}")
+            except Exception as del_err:
+                print(f"Warning: Could not delete temporary file: {str(del_err)}")
+                # Ne pas échouer si la suppression ne fonctionne pas
 
 
 @app.route("/health", methods=["GET"])
