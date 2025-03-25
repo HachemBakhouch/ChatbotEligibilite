@@ -19,20 +19,6 @@
         }
       }
     },
-    "schooling_verification": {
-      "next": "city_verification",
-      "message": "Êtes-vous scolarisé actuellement ?",
-      "responses": {
-        "yes": {
-          "next": "city_verification",
-          "message": "Dans quelle ville habitez-vous ?"
-        },
-        "no": {
-          "next": "city_verification",
-          "message": "Dans quelle ville habitez-vous ?"
-        }
-      }
-    },
     "age_verification": {
       "next": "rsa_verification",
       "message": "Quel âge avez-vous ?",
@@ -51,25 +37,18 @@
           "message": "Êtes-vous bénéficiaire du RSA ?"
         },
         {
-          "condition": "age > 25.5",
+          "condition": "age > 25.5 and age < 62",
           "next": "rsa_verification_adult",
           "message": "Êtes-vous bénéficiaire du RSA ?"
+        },
+        {
+          "condition": "age >= 62",
+          "next": "not_eligible_age",
+          "message": "Je suis désolé, mais vous devez avoir moins de 62 ans pour être éligible aux programmes.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (âge)"
         }
       ]
-    },
-    "rsa_verification": {
-      "next": "schooling_verification",
-      "message": "Êtes-vous bénéficiaire du RSA ?",
-      "responses": {
-        "yes": {
-          "next": "schooling_verification_young_rsa",
-          "message": "Êtes-vous scolarisé actuellement ?"
-        },
-        "no": {
-          "next": "schooling_verification_young_no_rsa",
-          "message": "Êtes-vous scolarisé actuellement ?"
-        }
-      }
     },
     "rsa_verification_young": {
       "next": "schooling_verification_young",
@@ -241,6 +220,27 @@
         }
       ]
     },
+    "city_verification": {
+      "next": "result",
+      "message": "Dans quelle ville habitez-vous ?",
+      "process": "extract_city",
+      "transitions": [
+        {
+          "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
+          "next": "eligible_ali",
+          "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+          "is_final": true,
+          "eligibility_result": "ALI"
+        },
+        {
+          "condition": "True",
+          "next": "not_eligible_city",
+          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+          "is_final": true,
+          "eligibility_result": "Non éligible (ville)"
+        }
+      ]
+    },
     "eligible_ali": {
       "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
       "is_final": true,
@@ -257,7 +257,7 @@
       "eligibility_result": "PLIE"
     },
     "not_eligible_age": {
-      "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
+      "message": "Je suis désolé, mais vous ne remplissez pas les critères d'âge pour être éligible aux programmes.",
       "is_final": true,
       "eligibility_result": "Non éligible (âge)"
     },

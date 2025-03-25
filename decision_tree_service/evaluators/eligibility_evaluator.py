@@ -83,9 +83,16 @@ class EligibilityEvaluator:
                             "message": "Êtes-vous bénéficiaire du RSA ?",
                         },
                         {
-                            "condition": "age > 25.5",
+                            "condition": "age > 25.5 and age < 62",
                             "next": "rsa_verification_adult",
                             "message": "Êtes-vous bénéficiaire du RSA ?",
+                        },
+                        {
+                            "condition": "age >= 62",
+                            "next": "not_eligible_age",
+                            "message": "Je suis désolé, mais vous devez avoir moins de 62 ans pour être éligible aux programmes.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (âge)",
                         },
                     ],
                 },
@@ -274,6 +281,41 @@ class EligibilityEvaluator:
                         },
                     ],
                 },
+                "city_verification": {
+                    "next": "result",
+                    "message": "Dans quelle ville habitez-vous ?",
+                    "process": "extract_city",
+                    "transitions": [
+                        {
+                            "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
+                            "next": "eligible_ali",
+                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "is_final": True,
+                            "eligibility_result": "ALI",
+                        },
+                        {
+                            "condition": "True",
+                            "next": "not_eligible_city",
+                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        },
+                    ],
+                },
+                "schooling_verification": {
+                    "next": "city_verification",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "responses": {
+                        "yes": {
+                            "next": "city_verification",
+                            "message": "Dans quelle ville habitez-vous ?",
+                        },
+                        "no": {
+                            "next": "city_verification",
+                            "message": "Dans quelle ville habitez-vous ?",
+                        },
+                    },
+                },
                 "eligible_ali": {
                     "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
                     "is_final": True,
@@ -290,7 +332,7 @@ class EligibilityEvaluator:
                     "eligibility_result": "PLIE",
                 },
                 "not_eligible_age": {
-                    "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
+                    "message": "Je suis désolé, mais vous ne remplissez pas les critères d'âge pour être éligible aux programmes.",
                     "is_final": True,
                     "eligibility_result": "Non éligible (âge)",
                 },
@@ -450,7 +492,7 @@ class EligibilityEvaluator:
             print(f"Vérification des réponses pour l'intention: {intent}")
 
             # Vérifier les intentions oui/non
-            if intent in ["yes", "affirm", "agree", "oui"]:
+            if intent in ["yes", "affirm", "agree", "oui"] or "oui" in text.lower():
                 if "yes" in state_def["responses"]:
                     response = state_def["responses"]["yes"]
                     print(
@@ -462,7 +504,7 @@ class EligibilityEvaluator:
                         "is_final": response.get("is_final", False),
                         "eligibility_result": response.get("eligibility_result"),
                     }
-            elif intent in ["no", "deny", "disagree", "non"]:
+            elif intent in ["no", "deny", "disagree", "non"] or "non" in text.lower():
                 if "no" in state_def["responses"]:
                     response = state_def["responses"]["no"]
                     print(
@@ -631,15 +673,29 @@ class EligibilityEvaluator:
 
                 cities = [
                     "saint-denis",
+                    "st-denis",
+                    "saint denis",
+                    "st denis",
                     "stains",
                     "pierrefitte",
+                    "pierfitte",
+                    "pierrefite",
                     "saint-ouen",
+                    "st-ouen",
+                    "saint ouen",
+                    "st ouen",
                     "epinay",
+                    "épinay",
+                    "epinay-sur-seine",
+                    "épinay-sur-seine",
                     "villetaneuse",
                     "ile-saint-denis",
+                    "île-saint-denis",
+                    "ile saint denis",
+                    "île saint denis",
                     "aubervilliers",
-                    "epinay-sur-seine",
                     "la-courneuve",
+                    "la courneuve",
                 ]
 
                 for city in cities:
