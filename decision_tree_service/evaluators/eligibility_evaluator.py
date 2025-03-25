@@ -48,7 +48,7 @@ class EligibilityEvaluator:
             "states": {
                 "initial": {
                     "next": "consent",
-                    "message": "Bonjour, je suis un CODEE qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
+                    "message": "Bonjour, je suis CODEE qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
                 },
                 "consent": {
                     "next": "age_verification",
@@ -333,7 +333,46 @@ class EligibilityEvaluator:
             if conversation_id not in self.user_data:
                 self.user_data[conversation_id] = {}
             self.user_data[conversation_id].update(user_data)
+        # Gestion spéciale des cas problématiques - AJOUTER CE BLOC DE CODE
+        if current_state == "rsa_verification_adult":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            print(f"RSA adult check - intent: {intent}, text: {text}")
 
+            if intent == "yes" or "oui" in text:
+                print("RSA: Oui pour adulte")
+                return {
+                    "next_state": "schooling_verification_adult_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "no" or "non" in text:
+                print("RSA: Non pour adulte")
+                return {
+                    "next_state": "schooling_verification_adult_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+
+        elif current_state == "rsa_verification_young":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            print(f"RSA young check - intent: {intent}, text: {text}")
+
+            if intent == "yes" or "oui" in text:
+                print("RSA: Oui pour jeune")
+                return {
+                    "next_state": "schooling_verification_young_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "no" or "non" in text:
+                print("RSA: Non pour jeune")
+                return {
+                    "next_state": "schooling_verification_young_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
         # Obtenir la définition de l'état actuel
         state_def = self.rules["states"].get(current_state)
 
@@ -383,7 +422,28 @@ class EligibilityEvaluator:
                         }
                     else:
                         print(f"Condition non satisfaite.")
-
+        if current_state == "rsa_verification_adult":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            print(f"État rsa_verification_adult avec intention: {intent}")
+            # Gestion explicite des réponses oui/non pour cet état
+            if intent == "no":
+                print(
+                    "Réponse 'non' détectée pour rsa_verification_adult, transition explicite"
+                )
+                return {
+                    "next_state": "schooling_verification_adult_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "yes":
+                print(
+                    "Réponse 'oui' détectée pour rsa_verification_adult, transition explicite"
+                )
+                return {
+                    "next_state": "schooling_verification_adult_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
         # Gérer les réponses directes si présentes
         if nlp_data and "responses" in state_def:
             intent = nlp_data.get("intent", "").lower()
@@ -503,7 +563,7 @@ class EligibilityEvaluator:
                 print(f"Âge extrait des entités NLP: {age}")
             else:
                 # Essayer d'extraire du texte brut
-                text = nlp_data.get("text", "")
+                text = nlp_data.get("text", "").lower()
                 print(f"Tentative d'extraction d'âge du texte: '{text}'")
 
                 try:
@@ -512,9 +572,46 @@ class EligibilityEvaluator:
                     if age_match:
                         age = int(age_match.group())
                         result["age"] = age
-                        print(f"Âge extrait du texte: {age}")
+                        print(f"Âge extrait du texte (chiffres): {age}")
                     else:
-                        print(f"Aucun âge trouvé dans le texte")
+                        # Tenter de trouver des nombres écrits en toutes lettres
+                        number_words = {
+                            "dix-huit": 18,
+                            "dix huit": 18,
+                            "dixhuit": 18,
+                            "vingt": 20,
+                            "vingt et un": 21,
+                            "vingt-et-un": 21,
+                            "vingt-deux": 22,
+                            "vingt deux": 22,
+                            "vingt-trois": 23,
+                            "vingt trois": 23,
+                            "vingt-quatre": 24,
+                            "vingt quatre": 24,
+                            "vingt-cinq": 25,
+                            "vingt cinq": 25,
+                            "vingt-six": 26,
+                            "vingt six": 26,
+                            "vingt-sept": 27,
+                            "vingt sept": 27,
+                            "vingt-huit": 28,
+                            "vingt huit": 28,
+                            "vingt-neuf": 29,
+                            "vingt neuf": 29,
+                            "trente": 30,
+                            "trente-cinq": 35,
+                            "trente cinq": 35,
+                            "quarante": 40,
+                            "cinquante": 50,
+                        }
+
+                        for word, value in number_words.items():
+                            if word in text:
+                                result["age"] = value
+                                print(f"Âge extrait du texte (mots): {value}")
+                                break
+                        else:
+                            print(f"Aucun âge trouvé dans le texte")
                 except Exception as e:
                     print(f"Erreur lors de l'extraction d'âge: {str(e)}")
                     result["age"] = 0

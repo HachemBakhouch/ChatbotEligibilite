@@ -27,9 +27,16 @@ class OpenAIProcessor:
             
             Texte: "{text}"
             
+            Instructions spécifiques:
+            - Si le texte contient des mots comme "oui", "bien sûr", "d'accord", "ok", considère l'intention comme "yes"
+            - Si le texte contient des mots comme "non", "pas", "ne pas", considère l'intention comme "no"
+            - Si le texte mentionne le RSA de façon positive, ajoute l'entité "rsa" = true
+            - Si le texte mentionne le RSA de façon négative, ajoute l'entité "rsa" = false
+            - Si le texte inclut un âge, extrait-le comme entité "age"
+            
             Retourne UNIQUEMENT un objet JSON avec le format suivant:
             {{
-                "intent": "l'intention principale (provide_info, confirm, deny, ask_question, etc.)",
+                "intent": "l'intention principale (provide_info, yes, no, ask_question, etc.)",
                 "entities": {{
                     "age": nombre si présent,
                     "city": ville si mentionnée,
@@ -53,7 +60,7 @@ class OpenAIProcessor:
                 "messages": [
                     {
                         "role": "system",
-                        "content": "Tu es un assistant spécialisé dans l'analyse de texte et l'extraction d'entités.",
+                        "content": "Tu es un assistant spécialisé dans l'analyse de texte et l'extraction d'entités. Tu dois être particulièrement attentif aux intentions affirmatives (oui) et négatives (non), ainsi qu'aux mentions du RSA.",
                     },
                     {"role": "user", "content": prompt},
                 ],
@@ -77,6 +84,46 @@ class OpenAIProcessor:
                     parsed_result = json.loads(content)
                     # Add the original text
                     parsed_result["text"] = text
+
+                    # Fallback detection for yes/no intents and RSA entity
+                    lower_text = text.lower()
+
+                    # Override intent for clear yes/no cases if not already detected
+                    if parsed_result.get("intent") not in ["yes", "no"]:
+                        yes_keywords = [
+                            "oui",
+                            "yes",
+                            "ok",
+                            "d'accord",
+                            "bien sûr",
+                            "certainement",
+                            "absolument",
+                        ]
+                        no_keywords = ["non", "no", "nope", "pas"]
+
+                        if any(kw in lower_text for kw in yes_keywords):
+                            parsed_result["intent"] = "yes"
+                            print(f"Intent override: 'yes' detected in: '{text}'")
+                        elif any(kw in lower_text for kw in no_keywords):
+                            parsed_result["intent"] = "no"
+                            print(f"Intent override: 'no' detected in: '{text}'")
+
+                    # Detect RSA if not already present in entities
+                    if "rsa" not in parsed_result.get("entities", {}):
+                        if "rsa" in lower_text or "revenu de solidarité" in lower_text:
+                            if any(
+                                neg in lower_text for neg in ["non", "pas", "ne pas"]
+                            ):
+                                parsed_result.setdefault("entities", {})["rsa"] = False
+                                print(
+                                    f"Entity override: 'rsa'=False detected in: '{text}'"
+                                )
+                            else:
+                                parsed_result.setdefault("entities", {})["rsa"] = True
+                                print(
+                                    f"Entity override: 'rsa'=True detected in: '{text}'"
+                                )
+
                     return parsed_result
                 except json.JSONDecodeError:
                     # Fallback if the response isn't valid JSON

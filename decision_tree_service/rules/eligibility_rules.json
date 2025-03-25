@@ -19,6 +19,20 @@
         }
       }
     },
+    "schooling_verification": {
+      "next": "city_verification",
+      "message": "Êtes-vous scolarisé actuellement ?",
+      "responses": {
+        "yes": {
+          "next": "city_verification",
+          "message": "Dans quelle ville habitez-vous ?"
+        },
+        "no": {
+          "next": "city_verification",
+          "message": "Dans quelle ville habitez-vous ?"
+        }
+      }
+    },
     "age_verification": {
       "next": "rsa_verification",
       "message": "Quel âge avez-vous ?",

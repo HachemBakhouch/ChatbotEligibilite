@@ -94,5 +94,41 @@ def index():
     )
 
 
+@app.route("/debug", methods=["GET"])
+def debug_tree():
+    """Route de débogage pour tester les transitions"""
+    try:
+        # Créer un évaluateur temporaire
+        temp_evaluator = EligibilityEvaluator()
+
+        # Tester les transitions problématiques
+        results = {
+            "rsa_verification_adult_yes": temp_evaluator.evaluate(
+                conversation_id="debug",
+                current_state="rsa_verification_adult",
+                nlp_data={"intent": "yes", "text": "Oui"},
+            ),
+            "rsa_verification_adult_no": temp_evaluator.evaluate(
+                conversation_id="debug",
+                current_state="rsa_verification_adult",
+                nlp_data={"intent": "no", "text": "Non"},
+            ),
+            "rsa_verification_young_yes": temp_evaluator.evaluate(
+                conversation_id="debug",
+                current_state="rsa_verification_young",
+                nlp_data={"intent": "yes", "text": "Oui"},
+            ),
+            "rsa_verification_young_no": temp_evaluator.evaluate(
+                conversation_id="debug",
+                current_state="rsa_verification_young",
+                nlp_data={"intent": "no", "text": "Non"},
+            ),
+        }
+
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(host=Config.HOST, port=Config.PORT, debug=Config.DEBUG)
