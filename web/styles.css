@@ -80,7 +80,7 @@ body {
 
 .user-message {
     width: 94px;
-    height: 40px;
+    min-height: 40px;
     background-color: #3720BC;
     color: #FFFFFF;
     align-self: flex-end;
@@ -95,9 +95,12 @@ body {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-size: 13px;
-    line-height: 20px;
+    line-height: 1.5;
     letter-spacing: -0.015em;
     text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .bot-message {
