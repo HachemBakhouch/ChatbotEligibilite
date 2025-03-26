@@ -25,7 +25,14 @@
         <div class="chat-area" id="chat-messages">
             <!-- Messages will be dynamically added here -->
         </div>
-
+        <div class="recording-container" id="recording-container">
+            <div class="recording-waveform">
+                <img src="/assets/waveformrecord.png" alt="Recording Waveform">
+            </div>
+            <button class="recording-pause-btn">
+                <img src="/assets/record.png" alt="Pause Recording">
+            </button>
+        </div>
         <div class="input-area">
             <input type="text" id="text-input" placeholder="Écrivez votre message...">
             <button id="send-button" class="send-btn">
@@ -39,24 +46,7 @@
             </button>
         </div>
 
-        <div class="audio-recording" id="recording-indicator">
-            <button class="record-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 2C8.686 2 6 4.686 6 8V12C6 15.314 8.686 18 12 18C15.314 18 18 15.314 18 12V8C18 4.686 15.314 2 12 2Z"
-                        fill="#3720BC" />
-                    <path
-                        d="M12 20C15.535 20 18.897 17.839 20 14.601L18.112 14.019C17.218 16.463 14.817 18 12 18C9.183 18 6.782 16.463 5.888 14.019L4 14.601C5.103 17.839 8.465 20 12 20Z"
-                        fill="#3720BC" />
-                </svg>
-            </button>
-            <div class="audio-wave"></div>
-            <button class="stop-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 6H18V18H6V6Z" fill="#ED450F" />
-                </svg>
-            </button>
-        </div>
+
 
         <div class="pdf-generation">
             <button id="generate-pdf-button" class="pdf-button" disabled>
