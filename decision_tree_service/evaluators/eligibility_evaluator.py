@@ -48,7 +48,7 @@ class EligibilityEvaluator:
             "states": {
                 "initial": {
                     "next": "consent",
-                    "message": "Bonjour, je suis CODEE qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
+                    "message": "Bonjour, je suis CODEE, votre assistant virtuel. Je suis là pour vous aider à déterminer votre éligibilité aux programmes sociaux. Quelques questions simples me permettront de vous orienter vers le dispositif le plus adapté à votre situation.",
                 },
                 "consent": {
                     "next": "age_verification",
