@@ -96,6 +96,7 @@ class EligibilityEvaluator:
                         },
                     ],
                 },
+                # Ajout de l'état manquant "rsa_verification"
                 "rsa_verification": {
                     "next": "schooling_verification",
                     "message": "Êtes-vous bénéficiaire du RSA ?",
@@ -181,7 +182,7 @@ class EligibilityEvaluator:
                     "process": "extract_city",
                     "transitions": [
                         {
-                            "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'épinay', 'villetaneuse', 'ile-saint-denis', 'île-saint-denis']",
+                            "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'villetaneuse', 'ile-saint-denis']",
                             "next": "eligible_ml",
                             "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
                             "is_final": True,
@@ -265,7 +266,7 @@ class EligibilityEvaluator:
                     "process": "extract_city",
                     "transitions": [
                         {
-                            "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'épinay-sur-seine', 'ile-saint-denis', 'île-saint-denis', 'la-courneuve', 'la courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
+                            "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'ile-saint-denis', 'la-courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
                             "next": "eligible_plie",
                             "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
                             "is_final": True,
@@ -279,6 +280,41 @@ class EligibilityEvaluator:
                             "eligibility_result": "Non éligible (ville)",
                         },
                     ],
+                },
+                "city_verification": {
+                    "next": "result",
+                    "message": "Dans quelle ville habitez-vous ?",
+                    "process": "extract_city",
+                    "transitions": [
+                        {
+                            "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
+                            "next": "eligible_ali",
+                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "is_final": True,
+                            "eligibility_result": "ALI",
+                        },
+                        {
+                            "condition": "True",
+                            "next": "not_eligible_city",
+                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        },
+                    ],
+                },
+                "schooling_verification": {
+                    "next": "city_verification",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "responses": {
+                        "yes": {
+                            "next": "city_verification",
+                            "message": "Dans quelle ville habitez-vous ?",
+                        },
+                        "no": {
+                            "next": "city_verification",
+                            "message": "Dans quelle ville habitez-vous ?",
+                        },
+                    },
                 },
                 "eligible_ali": {
                     "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
@@ -339,7 +375,46 @@ class EligibilityEvaluator:
             if conversation_id not in self.user_data:
                 self.user_data[conversation_id] = {}
             self.user_data[conversation_id].update(user_data)
+        # Gestion spéciale des cas problématiques - AJOUTER CE BLOC DE CODE
+        if current_state == "rsa_verification_adult":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            print(f"RSA adult check - intent: {intent}, text: {text}")
 
+            if intent == "yes" or "oui" in text:
+                print("RSA: Oui pour adulte")
+                return {
+                    "next_state": "schooling_verification_adult_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "no" or "non" in text:
+                print("RSA: Non pour adulte")
+                return {
+                    "next_state": "schooling_verification_adult_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+
+        elif current_state == "rsa_verification_young":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            print(f"RSA young check - intent: {intent}, text: {text}")
+
+            if intent == "yes" or "oui" in text:
+                print("RSA: Oui pour jeune")
+                return {
+                    "next_state": "schooling_verification_young_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "no" or "non" in text:
+                print("RSA: Non pour jeune")
+                return {
+                    "next_state": "schooling_verification_young_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
         # Obtenir la définition de l'état actuel
         state_def = self.rules["states"].get(current_state)
 
@@ -358,14 +433,8 @@ class EligibilityEvaluator:
             process_type = state_def["process"]
             print(f"Traitement spécial requis: {process_type}")
 
-            # Utiliser à la fois nlp_data et user_data pour le traitement
-            combined_data = {}
-            if user_data:
-                combined_data.update(user_data)
-
-            # Le traitement peut ajouter de nouvelles données
             process_result = self._process_special_logic(
-                process_type, nlp_data, combined_data
+                process_type, nlp_data, self.user_data.get(conversation_id, {})
             )
 
             print(f"Résultats du traitement: {json.dumps(process_result)}")
@@ -375,9 +444,6 @@ class EligibilityEvaluator:
                 self.user_data[conversation_id] = {}
             self.user_data[conversation_id].update(process_result)
 
-            # Si user_data est fourni, mettre à jour combined_data
-            combined_data.update(process_result)
-
             # Gérer les transitions basées sur le traitement
             if "transitions" in state_def:
                 print(f"Évaluation des transitions...")
@@ -385,8 +451,8 @@ class EligibilityEvaluator:
                     condition = transition["condition"]
                     print(f"Vérification de la condition: {condition}")
 
-                    # Évaluer la condition avec les données combinées
-                    if self._evaluate_condition(condition, combined_data):
+                    # Évaluer la condition
+                    if self._evaluate_condition(condition, process_result):
                         print(
                             f"Condition satisfaite! Transition vers: {transition['next']}"
                         )
@@ -398,20 +464,35 @@ class EligibilityEvaluator:
                         }
                     else:
                         print(f"Condition non satisfaite.")
-
+        if current_state == "rsa_verification_adult":
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            print(f"État rsa_verification_adult avec intention: {intent}")
+            # Gestion explicite des réponses oui/non pour cet état
+            if intent == "no":
+                print(
+                    "Réponse 'non' détectée pour rsa_verification_adult, transition explicite"
+                )
+                return {
+                    "next_state": "schooling_verification_adult_no_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
+            elif intent == "yes":
+                print(
+                    "Réponse 'oui' détectée pour rsa_verification_adult, transition explicite"
+                )
+                return {
+                    "next_state": "schooling_verification_adult_rsa",
+                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "is_final": False,
+                }
         # Gérer les réponses directes si présentes
         if nlp_data and "responses" in state_def:
             intent = nlp_data.get("intent", "").lower()
-            text = nlp_data.get("text", "").lower() if nlp_data else ""
             print(f"Vérification des réponses pour l'intention: {intent}")
 
             # Vérifier les intentions oui/non
-            if (
-                intent in ["yes", "affirm", "agree"]
-                or "oui" in text.lower()
-                or "d'accord" in text.lower()
-                or "ok" in text.lower()
-            ):
+            if intent in ["yes", "affirm", "agree", "oui"] or "oui" in text.lower():
                 if "yes" in state_def["responses"]:
                     response = state_def["responses"]["yes"]
                     print(
@@ -423,11 +504,7 @@ class EligibilityEvaluator:
                         "is_final": response.get("is_final", False),
                         "eligibility_result": response.get("eligibility_result"),
                     }
-            elif (
-                intent in ["no", "deny", "disagree"]
-                or "non" in text.lower()
-                or "pas" in text.lower()
-            ):
+            elif intent in ["no", "deny", "disagree", "non"] or "non" in text.lower():
                 if "no" in state_def["responses"]:
                     response = state_def["responses"]["no"]
                     print(
@@ -440,42 +517,66 @@ class EligibilityEvaluator:
                         "eligibility_result": response.get("eligibility_result"),
                     }
 
-        # Rechercher d'autres entités dans les données
-        if nlp_data and "entities" in nlp_data:
-            entities = nlp_data["entities"]
+            # Si nous avons des entités mais pas d'intention claire, essayons de traiter en fonction des entités
+            entities = nlp_data.get("entities", {})
+            if entities:
+                print(f"Entités détectées: {json.dumps(entities)}")
 
-            # Traitement spécial pour l'âge si nous sommes dans l'état age_verification
-            if current_state == "age_verification" and "age" in entities:
-                age = entities["age"]
-                print(f"Âge détecté: {age}")
+                # Si nous sommes dans un état qui attend un âge et nous avons un âge
+                if current_state == "age_verification" and "age" in entities:
+                    age = entities["age"]
+                    self.user_data.setdefault(conversation_id, {})["age"] = age
+                    print(f"Âge détecté: {age}")
 
-                # Déterminer la prochaine étape en fonction de l'âge
-                if age < 16:
-                    return {
-                        "next_state": "not_eligible_age",
-                        "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
-                        "is_final": True,
-                        "eligibility_result": "Non éligible (âge)",
-                    }
-                elif age <= 25.5:
-                    return {
-                        "next_state": "rsa_verification_young",
-                        "message": "Êtes-vous bénéficiaire du RSA ?",
-                        "is_final": False,
-                    }
-                elif age < 62:
-                    return {
-                        "next_state": "rsa_verification_adult",
-                        "message": "Êtes-vous bénéficiaire du RSA ?",
-                        "is_final": False,
-                    }
-                else:
-                    return {
-                        "next_state": "not_eligible_age",
-                        "message": "Je suis désolé, mais vous devez avoir moins de 62 ans pour être éligible aux programmes.",
-                        "is_final": True,
-                        "eligibility_result": "Non éligible (âge)",
-                    }
+                    # Déterminer la prochaine étape en fonction de l'âge
+                    if age < 16:
+                        print(f"Âge < 16, non éligible")
+                        return {
+                            "next_state": "not_eligible_age",
+                            "message": "Je suis désolé, mais vous devez avoir au moins 16 ans pour être éligible aux programmes.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (âge)",
+                        }
+                    elif age <= 25.5:
+                        print(f"16 <= Âge <= 25.5, vérification RSA pour jeune")
+                        return {
+                            "next_state": "rsa_verification_young",
+                            "message": "Êtes-vous bénéficiaire du RSA ?",
+                            "is_final": False,
+                        }
+                    else:
+                        print(f"Âge > 25.5, vérification RSA pour adulte")
+                        return {
+                            "next_state": "rsa_verification_adult",
+                            "message": "Êtes-vous bénéficiaire du RSA ?",
+                            "is_final": False,
+                        }
+
+                # Si nous sommes dans un état qui attend une ville et nous avons une ville
+                elif "city_verification" in current_state and "city" in entities:
+                    city = entities["city"].lower()
+                    self.user_data.setdefault(conversation_id, {})["city"] = city
+                    print(f"Ville détectée: {city}")
+
+                    # Traitement selon l'état actuel
+                    if current_state == "city_verification_young_rsa":
+                        if city in ["saint-denis", "stains", "pierrefitte"]:
+                            print(f"Ville éligible pour ALI")
+                            return {
+                                "next_state": "eligible_ali",
+                                "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                                "is_final": True,
+                                "eligibility_result": "ALI",
+                            }
+                        else:
+                            print(f"Ville non éligible")
+                            return {
+                                "next_state": "not_eligible_city",
+                                "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                                "is_final": True,
+                                "eligibility_result": "Non éligible (ville)",
+                            }
+                    # Ajouter d'autres cas similaires...
 
         # État suivant par défaut
         print(f"Transition par défaut vers: {state_def.get('next', current_state)}")
@@ -490,26 +591,19 @@ class EligibilityEvaluator:
         """Retourner les règles actuelles"""
         return self.rules
 
-    def _process_special_logic(self, process_type, nlp_data, existing_data=None):
+    def _process_special_logic(self, process_type, nlp_data, user_data):
         """Traiter la logique spéciale basée sur le type de processus"""
         result = {}
-        if existing_data:
-            result.update(existing_data)
 
         if process_type == "extract_age":
-            # D'abord vérifier si l'âge est déjà dans les données existantes
-            if existing_data and "age" in existing_data:
-                print(f"Âge déjà présent dans les données: {existing_data['age']}")
-                result["age"] = existing_data["age"]
-                return result
-
-            # Sinon, extraire l'âge des données NLP ou du message utilisateur
+            # Extraire l'âge des données NLP ou du message utilisateur
             entities = nlp_data.get("entities", {})
 
             if "age" in entities:
                 age = entities["age"]
                 result["age"] = age
                 print(f"Âge extrait des entités NLP: {age}")
+                return result
             else:
                 # Essayer d'extraire du texte brut
                 text = nlp_data.get("text", "").lower()
@@ -563,14 +657,9 @@ class EligibilityEvaluator:
                             print(f"Aucun âge trouvé dans le texte")
                 except Exception as e:
                     print(f"Erreur lors de l'extraction d'âge: {str(e)}")
+                    result["age"] = 0
 
         elif process_type == "extract_city":
-            # D'abord vérifier si la ville est déjà dans les données existantes
-            if existing_data and "city" in existing_data:
-                print(f"Ville déjà présente dans les données: {existing_data['city']}")
-                result["city"] = existing_data["city"].lower()
-                return result
-
             # Extraire la ville des données NLP
             entities = nlp_data.get("entities", {})
 
@@ -608,7 +697,6 @@ class EligibilityEvaluator:
                     "aubervilliers",
                     "la-courneuve",
                     "la courneuve",
-                    "montfermeil",
                 ]
 
                 # Normalisation des variantes de noms de villes vers leur forme standard
@@ -682,14 +770,6 @@ class EligibilityEvaluator:
                             ],
                             "stains": ["stains"],
                             "pierrefitte": ["pierrefitte", "pierrefite", "pierfitte"],
-                            "saint-denis": [
-                                "saint-denis",
-                                "saint denis",
-                                "st-denis",
-                                "st denis",
-                            ],
-                            "stains": ["stains"],
-                            "pierrefitte": ["pierrefitte", "pierrefite", "pierfitte"],
                             "saint-ouen": [
                                 "saint-ouen",
                                 "saint ouen",
@@ -715,22 +795,18 @@ class EligibilityEvaluator:
 
                         # Vérifier si la ville entrée correspond à l'une des villes normalisées dans la liste
                         for listed_city in list_value:
-                            listed_city_lower = listed_city.lower()
-                            # Vérification directe
-                            if city_value == listed_city_lower:
-                                return True
+                            listed_city = listed_city.lower()
 
+                            # Vérification directe
+                            if city_value == listed_city:
+                                return True
                             # Vérifier les variantes connues
                             for standard_city, variants in city_normalization.items():
-                                if (
-                                    listed_city_lower in variants
-                                    and city_value in variants
-                                ):
+                                if listed_city in variants and city_value in variants:
                                     print(
                                         f"Ville '{city_value}' reconnue comme variante de '{standard_city}' qui est dans la liste"
                                     )
                                     return True
-
                         print(
                             f"Ville '{city_value}' non trouvée dans les variantes reconnues"
                         )

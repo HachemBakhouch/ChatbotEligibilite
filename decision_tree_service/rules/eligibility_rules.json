@@ -121,7 +121,7 @@
       "process": "extract_city",
       "transitions": [
         {
-          "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'villetaneuse', 'ile-saint-denis']",
+          "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'épinay', 'villetaneuse', 'ile-saint-denis', 'île-saint-denis']",
           "next": "eligible_ml",
           "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
           "is_final": true,
@@ -205,32 +205,11 @@
       "process": "extract_city",
       "transitions": [
         {
-          "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'ile-saint-denis', 'la-courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
+          "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'épinay-sur-seine', 'ile-saint-denis', 'île-saint-denis', 'la-courneuve', 'la courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
           "next": "eligible_plie",
           "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
           "is_final": true,
           "eligibility_result": "PLIE"
-        },
-        {
-          "condition": "True",
-          "next": "not_eligible_city",
-          "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
-          "is_final": true,
-          "eligibility_result": "Non éligible (ville)"
-        }
-      ]
-    },
-    "city_verification": {
-      "next": "result",
-      "message": "Dans quelle ville habitez-vous ?",
-      "process": "extract_city",
-      "transitions": [
-        {
-          "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
-          "next": "eligible_ali",
-          "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
-          "is_final": true,
-          "eligibility_result": "ALI"
         },
         {
           "condition": "True",
