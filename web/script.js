@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let speechQueue = [];
 
     // API URL
-    const API_BASE_URL = 'http://192.168.100.104:5001'; // ou 'http://127.0.0.1:5001'
+    const API_BASE_URL = 'http://localhost:5001'; // ou 'http://127.0.0.1:5001'
 
     // Initialisation de la conversation
     function initConversation() {
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
     // Fonction pour ajouter un message du demandeur au chat
-    function addUserMessage(text, transcription = null) {
+    function addUserMessage(text, transcription = null, audioUrl = null) {
         const messageContainer = document.createElement('div');
         messageContainer.classList.add('message-container', 'user-container');
 
@@ -56,19 +56,56 @@ document.addEventListener('DOMContentLoaded', function () {
         messageDiv.classList.add('message', 'user-message');
         messageDiv.textContent = text;
 
+        // Transcription in a separate rectangle
         if (transcription) {
+            const transcriptionContainer = document.createElement('div');
+            transcriptionContainer.classList.add('transcription-container');
+
             const transcriptionDiv = document.createElement('div');
             transcriptionDiv.classList.add('transcription');
-            transcriptionDiv.textContent = `Transcription: ${transcription}`;
-            messageDiv.appendChild(transcriptionDiv);
+            transcriptionDiv.textContent = transcription;
+
+            transcriptionContainer.appendChild(transcriptionDiv);
+            messageDiv.appendChild(transcriptionContainer);
         }
 
-        const avatarDiv = document.createElement('div');
-        avatarDiv.classList.add('message-avatar', 'user-avatar');
-        avatarDiv.textContent = 'U';
+        // Audio in a separate rectangle
+        if (audioUrl) {
+            const audioContainer = document.createElement('div');
+            audioContainer.classList.add('audio-message-container');
+
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.src = audioUrl;
+
+            const playButton = document.createElement('button');
+            playButton.classList.add('audio-play-btn');
+            playButton.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="12" fill="#3720BC"/>
+                    <path d="M9 16.5V7.5L16 12L9 16.5Z" fill="white"/>
+                </svg>
+            `;
+
+            playButton.addEventListener('click', () => {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playButton.classList.add('playing');
+                } else {
+                    audioPlayer.pause();
+                    playButton.classList.remove('playing');
+                }
+            });
+
+            audioPlayer.addEventListener('ended', () => {
+                playButton.classList.remove('playing');
+            });
+
+            audioContainer.appendChild(playButton);
+            audioContainer.appendChild(audioPlayer);
+            messageDiv.appendChild(audioContainer);
+        }
 
         messageContainer.appendChild(messageDiv);
-        messageContainer.appendChild(avatarDiv);
         chatMessages.appendChild(messageContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -82,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         messageDiv.classList.add('message', 'bot-message');
         messageDiv.textContent = text;
 
-        // Indicateur de parole
+        // Speaking Indicator
         const speakingIndicator = document.createElement('span');
         speakingIndicator.classList.add('speaking-indicator');
         speakingIndicator.style.display = 'none';
@@ -90,7 +127,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('message-avatar', 'bot-avatar');
-        avatarDiv.textContent = 'B';
+
+        // Create robot image
+        const robotImg = document.createElement('img');
+        robotImg.src = '/assets/robot-icon.png';
+        robotImg.alt = 'Robot Assistant';
+        robotImg.classList.add('robot-avatar-icon');
+
+        avatarDiv.appendChild(robotImg);
 
         messageContainer.appendChild(avatarDiv);
         messageContainer.appendChild(messageDiv);
@@ -153,12 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Démarrer l'enregistrement audio
     function startRecording() {
-        // Vérifier si mediaDevices est supporté
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.error('API MediaDevices non supportée sur ce navigateur');
-            alert('Votre navigateur ne supporte pas l\'enregistrement audio. Veuillez utiliser un navigateur moderne comme Chrome ou Firefox, ou vérifier que vous êtes en HTTPS.');
-            return;
-        }
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
@@ -315,9 +353,6 @@ document.addEventListener('DOMContentLoaded', function () {
         generatePdfButton.disabled = true;
         generatePdfButton.textContent = 'Génération en cours...';
 
-        console.log(`Envoi de la requête à ${API_BASE_URL}/generate-pdf`);
-        console.log(`Conversation ID: ${conversationId}`);
-
         fetch(`${API_BASE_URL}/generate-pdf`, {
             method: 'POST',
             headers: {
@@ -329,20 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 conversation_id: conversationId
             })
         })
-            .then(response => {
-                if (!response.ok) {
-                    // Ajouter ce bloc pour gérer les erreurs HTTP
-                    console.error(`Erreur HTTP: ${response.status}`);
-                    return response.text().then(text => {
-                        console.error(`Réponse: ${text}`);
-                        throw new Error(`Erreur HTTP ${response.status}: ${text}`);
-                    });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.file_url) {
-                    console.log(`PDF généré avec succès: ${data.file_url}`);
                     // Ouvrir le PDF dans un nouvel onglet
                     window.open(data.file_url, '_blank');
                 } else {
@@ -355,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => {
                 console.error('Error generating PDF:', error);
-                addBotMessage(`Erreur lors de la génération du PDF: ${error.message}. Veuillez réessayer.`);
+                addBotMessage('Erreur lors de la génération du PDF. Veuillez réessayer.');
 
                 // Réactiver le bouton
                 generatePdfButton.disabled = false;

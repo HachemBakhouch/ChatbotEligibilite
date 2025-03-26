@@ -4,33 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot d'Éligibilité - Interface Vocale</title>
+    <title>CODEE - Chatbot d'Éligibilité</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 </head>
 
 <body>
-    <div class="container">
-        <div class="chat-header">
-            <h1>Chatbot d'Éligibilité aux Programmes Sociaux-CODEE</h1>
+    <div class="chatbot-container">
+        <div class="header">
+            <!-- Empty header as requested -->
         </div>
-        <div class="chat-messages" id="chat-messages">
-            <!-- Les messages s'afficheront ici -->
+
+        <div class="chatbot-info">
+            <img src="/assets/robot-icon.png" alt="Chatbot Icon">
+            <div class="title">CODEE</div>
         </div>
-        <div class="chat-input">
-            <input type="text" id="text-input" placeholder="Tapez votre message ou utilisez le micro...">
-            <button id="send-button"><i class="fas fa-paper-plane"></i></button>
-            <button id="mic-button" class="mic-button">
-                <i class="fas fa-microphone"></i>
+
+        <div class="separator"></div>
+
+        <div class="chat-area" id="chat-messages">
+            <!-- Messages will be dynamically added here -->
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="text-input" placeholder="Écrivez votre message...">
+            <button id="send-button" class="send-btn">
+                <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="20" fill="#ED450F" />
+                    <path d="M12 20L26 12L22 20L26 28L12 20Z" fill="white" />
+                </svg>
+            </button>
+            <button id="mic-button" class="mic-btn">
+                <img src="/assets/mic-icon.png" alt="Microphone" class="mic-icon">
             </button>
         </div>
-        <div class="recording-indicator" id="recording-indicator">
-            Enregistrement en cours... <span id="recording-time">0</span>s
+
+        <div class="audio-recording" id="recording-indicator">
+            <button class="record-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 2C8.686 2 6 4.686 6 8V12C6 15.314 8.686 18 12 18C15.314 18 18 15.314 18 12V8C18 4.686 15.314 2 12 2Z"
+                        fill="#3720BC" />
+                    <path
+                        d="M12 20C15.535 20 18.897 17.839 20 14.601L18.112 14.019C17.218 16.463 14.817 18 12 18C9.183 18 6.782 16.463 5.888 14.019L4 14.601C5.103 17.839 8.465 20 12 20Z"
+                        fill="#3720BC" />
+                </svg>
+            </button>
+            <div class="audio-wave"></div>
+            <button class="stop-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 6H18V18H6V6Z" fill="#ED450F" />
+                </svg>
+            </button>
         </div>
-        <div class="action-buttons">
+
+        <div class="pdf-generation">
             <button id="generate-pdf-button" class="pdf-button" disabled>
-                <i class="fas fa-file-pdf"></i> Générer PDF
+                Générer PDF
             </button>
         </div>
     </div>
