@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Send Audio Message
     // Send Audio Message
+    // Mettre à jour la fonction sendAudioMessage pour créer correctement le message audio
     function sendAudioMessage(audioBlob) {
         if (!conversationId) {
             addBotMessage('Conversation non initialisée. Veuillez attendre...');
@@ -116,8 +117,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Format base64: data:audio/wav;base64,XXXXXX
             const base64Audio = reader.result.split(',')[1];
 
-            // First, add a generic audio message
-            addUserMessage('🎤 Message vocal envoyé');
+            // Créer URL pour l'audio
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Ajouter un message temporaire en attendant la transcription
+            addUserMessage('🎤 Message vocal envoyé', null, audioUrl);
 
             fetch(`${API_BASE_URL}/process-audio`, {
                 method: 'POST',
@@ -134,10 +138,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(data => {
                     if (data.transcription) {
-                        // Update the last user message with transcription
-                        const lastMessageContainer = chatMessages.lastElementChild;
-                        const userMessageDiv = lastMessageContainer.querySelector('.user-message');
-                        userMessageDiv.textContent = data.transcription;
+                        // Supprimer le message temporaire
+                        chatMessages.removeChild(chatMessages.lastElementChild);
+
+                        // Ajouter un nouveau message avec la transcription et l'audio
+                        addUserMessage(data.transcription, null, audioUrl);
                     }
 
                     // Slight delay before adding bot message
@@ -159,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // Add User Message
+    // Mettre à jour cette fonction pour afficher correctement les messages audio
     function addUserMessage(text, transcription = null, audioUrl = null) {
         const messageContainer = document.createElement('div');
         messageContainer.classList.add('message-container', 'user-container');
@@ -168,58 +173,293 @@ document.addEventListener('DOMContentLoaded', function () {
         messageDiv.classList.add('message', 'user-message');
         messageDiv.textContent = text;
 
-        // Transcription in a separate rectangle
-        if (transcription) {
-            const transcriptionContainer = document.createElement('div');
-            transcriptionContainer.classList.add('transcription-container');
-
-            const transcriptionDiv = document.createElement('div');
-            transcriptionDiv.classList.add('transcription');
-            transcriptionDiv.textContent = transcription;
-
-            transcriptionContainer.appendChild(transcriptionDiv);
-            messageDiv.appendChild(transcriptionContainer);
-        }
-
-        // Audio in a separate rectangle
+        // Si un message a été enregistré via l'audio
         if (audioUrl) {
+            console.log("Creating audio container with URL:", audioUrl); // Débogage
+
+            // Créer container pour audio player
             const audioContainer = document.createElement('div');
             audioContainer.classList.add('audio-message-container');
 
-            const audioPlayer = document.createElement('audio');
-            audioPlayer.src = audioUrl;
-
+            // Créer bouton play
             const playButton = document.createElement('button');
             playButton.classList.add('audio-play-btn');
             playButton.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="12" fill="#3720BC"/>
-                    <path d="M9 16.5V7.5L16 12L9 16.5Z" fill="white"/>
-                </svg>
-            `;
+             <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="14" cy="14" r="12" fill="#FFFFFF"/>
+                <path d="M11 18V10L19 14L11 18Z" fill="#3720BC"/>
+            </svg>
+        `;
+
+            // Créer waveform
+            const waveformDiv = document.createElement('div');
+            waveformDiv.classList.add('audio-waveform');
+            const waveformImg = document.createElement('img');
+            waveformImg.src = '/assets/waveform1.png';
+            waveformImg.alt = 'Audio Waveform';
+            waveformDiv.appendChild(waveformImg);
+
+            // Créer timer
+            const timerDiv = document.createElement('div');
+            timerDiv.classList.add('audio-timer');
+            timerDiv.textContent = '0:00';
+
+            // Créer icône volume
+            const volumeDiv = document.createElement('div');
+            volumeDiv.classList.add('audio-volume');
+            const volumeImg = document.createElement('img');
+            volumeImg.src = '/assets/volume.png';
+            volumeImg.alt = 'Volume';
+            volumeDiv.appendChild(volumeImg);
+
+            // Créer element audio caché
+            const audioElement = document.createElement('audio');
+            audioElement.src = audioUrl;
+            audioElement.style.display = 'none';
+
+            // Ajouter les éléments au container
+            audioContainer.appendChild(playButton);
+            audioContainer.appendChild(waveformDiv);
+            audioContainer.appendChild(timerDiv);
+            audioContainer.appendChild(volumeDiv);
+            audioContainer.appendChild(audioElement);
+
+            // Ajouter événements pour le bouton play
+            let isPlaying = false;
+            let timer = null;
+            let seconds = 0;
 
             playButton.addEventListener('click', () => {
-                if (audioPlayer.paused) {
-                    audioPlayer.play();
-                    playButton.classList.add('playing');
+                if (!isPlaying) {
+                    audioElement.play();
+                    isPlaying = true;
+
+                    // Démarrer le timer
+                    seconds = 0;
+                    timerDiv.textContent = '0:00';
+                    timer = setInterval(() => {
+                        seconds++;
+                        const mins = Math.floor(seconds / 60);
+                        const secs = String(seconds % 60).padStart(2, '0');
+                        timerDiv.textContent = `${mins}:${secs}`;
+                    }, 1000);
                 } else {
-                    audioPlayer.pause();
-                    playButton.classList.remove('playing');
+                    audioElement.pause();
+                    isPlaying = false;
+
+                    // Arrêter le timer
+                    clearInterval(timer);
                 }
             });
 
-            audioPlayer.addEventListener('ended', () => {
-                playButton.classList.remove('playing');
+            audioElement.addEventListener('ended', () => {
+                isPlaying = false;
+                clearInterval(timer);
+                timerDiv.textContent = '0:00';
             });
 
-            audioContainer.appendChild(playButton);
-            audioContainer.appendChild(audioPlayer);
+            // Si transcription fournie, l'ajouter comme texte séparé au-dessus du lecteur audio
+            if (transcription) {
+                const transcriptionDiv = document.createElement('div');
+                transcriptionDiv.classList.add('transcription-container');
+                transcriptionDiv.textContent = transcription;
+                messageDiv.appendChild(transcriptionDiv);
+            }
+
+            // Ajouter le player audio
             messageDiv.appendChild(audioContainer);
         }
 
         messageContainer.appendChild(messageDiv);
         chatMessages.appendChild(messageContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Add User Message
+    // Mettre à jour cette fonction dans script.js
+    // Fonction modifiée pour séparer le texte transcrit et l'audio en deux conteneurs distincts
+    function addUserMessage(text, transcription = null, audioUrl = null) {
+        // Créer le conteneur principal de message utilisateur
+        const messageContainer = document.createElement('div');
+        messageContainer.classList.add('message-container', 'user-container');
+
+        // Créer et ajouter le message texte principal
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', 'user-message');
+        messageDiv.textContent = text;
+        messageContainer.appendChild(messageDiv);
+
+        // Si une transcription est fournie, l'ajouter comme un conteneur distinct
+        if (transcription) {
+            const transcriptionContainer = document.createElement('div');
+            transcriptionContainer.classList.add('message-container', 'user-container');
+
+            const transcriptionDiv = document.createElement('div');
+            transcriptionDiv.classList.add('message', 'user-transcription');
+            transcriptionDiv.textContent = transcription;
+
+            transcriptionContainer.appendChild(transcriptionDiv);
+            chatMessages.appendChild(transcriptionContainer);
+        }
+
+        // Si un URL audio est fourni, créer un conteneur audio distinct
+        if (audioUrl) {
+            console.log("Creating separate audio container with URL:", audioUrl);
+
+            const audioContainer = document.createElement('div');
+            audioContainer.classList.add('message-container', 'user-container');
+
+            const audioPlayerDiv = document.createElement('div');
+            audioPlayerDiv.classList.add('audio-message-container');
+
+            // Créer bouton play
+            const playButton = document.createElement('button');
+            playButton.classList.add('audio-play-btn');
+            playButton.innerHTML = `
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="14" cy="14" r="14" fill="#FFFFFF"/>
+                <path d="M10 19V9L20 14L10 19Z" fill="#3720BC"/>
+            </svg>
+        `;
+
+            // Créer waveform
+            const waveformDiv = document.createElement('div');
+            waveformDiv.classList.add('audio-waveform');
+            const waveformImg = document.createElement('img');
+            waveformImg.src = '/assets/waveform1.png';
+            waveformImg.alt = 'Audio Waveform';
+            waveformDiv.appendChild(waveformImg);
+
+            // Créer timer
+            const timerDiv = document.createElement('div');
+            timerDiv.classList.add('audio-timer');
+            timerDiv.textContent = '0:00';
+
+            // Créer icône volume
+            const volumeDiv = document.createElement('div');
+            volumeDiv.classList.add('audio-volume');
+            const volumeImg = document.createElement('img');
+            volumeImg.src = '/assets/volume.png';
+            volumeImg.alt = 'Volume';
+            volumeDiv.appendChild(volumeImg);
+
+            // Créer element audio caché
+            const audioElement = document.createElement('audio');
+            audioElement.src = audioUrl;
+            audioElement.style.display = 'none';
+
+            // Ajouter les éléments au container audio
+            audioPlayerDiv.appendChild(playButton);
+            audioPlayerDiv.appendChild(waveformDiv);
+            audioPlayerDiv.appendChild(timerDiv);
+            audioPlayerDiv.appendChild(volumeDiv);
+            audioPlayerDiv.appendChild(audioElement);
+
+            // Ajouter le player audio au conteneur
+            audioContainer.appendChild(audioPlayerDiv);
+
+            // Ajouter événements pour le bouton play
+            let isPlaying = false;
+            let timer = null;
+            let seconds = 0;
+
+            playButton.addEventListener('click', () => {
+                if (!isPlaying) {
+                    audioElement.play();
+                    isPlaying = true;
+
+                    // Démarrer le timer
+                    seconds = 0;
+                    timerDiv.textContent = '0:00';
+                    timer = setInterval(() => {
+                        seconds++;
+                        const mins = Math.floor(seconds / 60);
+                        const secs = String(seconds % 60).padStart(2, '0');
+                        timerDiv.textContent = `${mins}:${secs}`;
+                    }, 1000);
+                } else {
+                    audioElement.pause();
+                    isPlaying = false;
+
+                    // Arrêter le timer
+                    clearInterval(timer);
+                }
+            });
+
+            audioElement.addEventListener('ended', () => {
+                isPlaying = false;
+                clearInterval(timer);
+                timerDiv.textContent = '0:00';
+            });
+
+            // Ajouter le conteneur audio au chat
+            chatMessages.appendChild(audioContainer);
+        }
+
+        // Ajouter le conteneur de message principal au chat
+        chatMessages.appendChild(messageContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Mise à jour de la fonction sendAudioMessage pour utiliser les nouveaux conteneurs séparés
+    function sendAudioMessage(audioBlob) {
+        if (!conversationId) {
+            addBotMessage('Conversation non initialisée. Veuillez attendre...');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+            // Format base64: data:audio/wav;base64,XXXXXX
+            const base64Audio = reader.result.split(',')[1];
+
+            // Créer URL pour l'audio
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Ajouter un message temporaire en attendant la transcription
+            addUserMessage('🎤 Message vocal envoyé', null, audioUrl);
+
+            fetch(`${API_BASE_URL}/process-audio`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify({
+                    conversation_id: conversationId,
+                    audio: base64Audio
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.transcription) {
+                        // Supprimer les messages temporaires (message et audio)
+                        chatMessages.removeChild(chatMessages.lastElementChild); // Audio container
+                        chatMessages.removeChild(chatMessages.lastElementChild); // Message container
+
+                        // Ajouter un nouveau message avec la transcription comme message principal
+                        addUserMessage(data.transcription, null, audioUrl);
+                    }
+
+                    // Slight delay before adding bot message
+                    setTimeout(() => {
+                        const speakingIndicator = addBotMessage(data.message);
+                        speakText(data.message, speakingIndicator);
+                    }, 500);
+
+                    // Activate PDF generation if conversation is finished
+                    if (data.is_final) {
+                        conversationFinished = true;
+                        generatePdfButton.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending audio message:', error);
+                    addBotMessage('Erreur lors de l\'envoi du message audio. Veuillez réessayer.');
+                });
+        };
     }
 
     // Add Bot Message

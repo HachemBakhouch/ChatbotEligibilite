@@ -27,7 +27,7 @@ class ConversationManager:
 
     def get_welcome_message(self):
         """Return the welcome message to start the conversation"""
-        return "Bonjour, je suis CODEE, votre assistant virtuel. Je suis là pour vous aider à déterminer votre éligibilité aux programmes sociaux. Quelques questions simples me permettront de vous orienter vers le dispositif le plus adapté à votre situation."
+        return "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !"
 
     def process_message(self, conversation_id, text):
         """Process user message and advance the conversation"""
@@ -210,7 +210,7 @@ class ConversationManager:
             if current_state == "initial":
                 return {
                     "next_state": "consent",
-                    "message": "Bonjour, je suis un CODEE qui peut vous aider à déterminer votre éligibilité aux programmes sociaux.",
+                    "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
                     "is_final": False,
                 }
             elif current_state == "consent":
