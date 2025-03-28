@@ -334,6 +334,12 @@ class EligibilityEvaluator:
         if user_data:
             print(f"User data: {json.dumps(user_data)}")
 
+        # Debug: Afficher l'état actuel des données utilisateur
+        if conversation_id in self.user_data:
+            print(
+                f"DEBUG - Current user data: {json.dumps(self.user_data[conversation_id])}"
+            )
+
         # Mettre à jour les données utilisateur
         if user_data:
             if conversation_id not in self.user_data:
@@ -370,6 +376,22 @@ class EligibilityEvaluator:
 
             print(f"Résultats du traitement: {json.dumps(process_result)}")
 
+            # Vérifier si le traitement a réussi à extraire l'information requise
+            if process_type == "extract_age" and "age" not in process_result:
+                # L'âge n'a pas pu être extrait, redemander
+                return {
+                    "next_state": current_state,  # Rester dans le même état
+                    "message": "Je n'ai pas compris votre âge. Pourriez-vous me dire quel âge vous avez, en chiffres (par exemple 25) ou en lettres (par exemple trente ans) ?",
+                    "is_final": False,
+                }
+            elif process_type == "extract_city" and "city" not in process_result:
+                # La ville n'a pas pu être extraite, redemander
+                return {
+                    "next_state": current_state,  # Rester dans le même état
+                    "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
+                    "is_final": False,
+                }
+
             # Mettre à jour les données utilisateur avec les résultats du traitement
             if conversation_id not in self.user_data:
                 self.user_data[conversation_id] = {}
@@ -398,6 +420,66 @@ class EligibilityEvaluator:
                         }
                     else:
                         print(f"Condition non satisfaite.")
+
+        # Vérification RSA dans les états concernés
+        if "rsa_verification" in current_state:
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+            rsa_detected = False
+
+            # Détection explicite de la réponse "non"
+            if "non" in text or intent == "no":
+                # Forcer RSA à False
+                if conversation_id not in self.user_data:
+                    self.user_data[conversation_id] = {}
+                self.user_data[conversation_id]["rsa"] = False
+                rsa_detected = True
+
+                # Forcer la transition vers l'état approprié
+                if current_state == "rsa_verification_young":
+                    print(
+                        "*** Transition forcée vers schooling_verification_young_no_rsa ***"
+                    )
+                    return {
+                        "next_state": "schooling_verification_young_no_rsa",
+                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "is_final": False,
+                    }
+            # Détection explicite de la réponse "oui"
+            elif "oui" in text or intent == "yes" or "d'accord" in text or "ok" in text:
+                # Forcer RSA à True
+                if conversation_id not in self.user_data:
+                    self.user_data[conversation_id] = {}
+                self.user_data[conversation_id]["rsa"] = True
+                rsa_detected = True
+
+                # Forcer la transition vers l'état approprié
+                if current_state == "rsa_verification_young":
+                    print(
+                        "*** Transition forcée vers schooling_verification_young_rsa ***"
+                    )
+                    return {
+                        "next_state": "schooling_verification_young_rsa",
+                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "is_final": False,
+                    }
+
+            # Si les données RSA sont déjà présentes mais pas détectées dans le texte
+            if not rsa_detected and "rsa" in self.user_data.get(conversation_id, {}):
+                rsa_value = self.user_data[conversation_id]["rsa"]
+                print(f"*** Utilisation de la valeur RSA existante: {rsa_value} ***")
+
+                if current_state == "rsa_verification_young":
+                    next_state = (
+                        "schooling_verification_young_rsa"
+                        if rsa_value
+                        else "schooling_verification_young_no_rsa"
+                    )
+                    return {
+                        "next_state": next_state,
+                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "is_final": False,
+                    }
 
         # Gérer les réponses directes si présentes
         if nlp_data and "responses" in state_def:
@@ -439,6 +521,14 @@ class EligibilityEvaluator:
                         "is_final": response.get("is_final", False),
                         "eligibility_result": response.get("eligibility_result"),
                     }
+            else:
+                # Si nous sommes dans un état qui attend une réponse oui/non mais qu'on n'a pas pu l'interpréter
+                if "yes" in state_def["responses"] and "no" in state_def["responses"]:
+                    return {
+                        "next_state": current_state,  # Rester dans le même état
+                        "message": "Je n'ai pas compris votre réponse. Pourriez-vous répondre simplement par oui ou par non ?",
+                        "is_final": False,
+                    }
 
         # Rechercher d'autres entités dans les données
         if nlp_data and "entities" in nlp_data:
@@ -463,7 +553,7 @@ class EligibilityEvaluator:
                         "message": "Êtes-vous bénéficiaire du RSA ?",
                         "is_final": False,
                     }
-                elif age < 62:
+                elif age < 64:
                     return {
                         "next_state": "rsa_verification_adult",
                         "message": "Êtes-vous bénéficiaire du RSA ?",
@@ -472,19 +562,263 @@ class EligibilityEvaluator:
                 else:
                     return {
                         "next_state": "not_eligible_age",
-                        "message": "Je suis désolé, mais vous devez avoir moins de 62 ans pour être éligible aux programmes.",
+                        "message": "Je suis désolé, mais vous devez avoir moins de 64 ans pour être éligible aux programmes.",
                         "is_final": True,
                         "eligibility_result": "Non éligible (âge)",
                     }
+            # Gérer le cas où on est dans un état qui nécessite l'âge mais qu'on ne l'a pas détecté
+            elif current_state == "age_verification" and "age" not in entities:
+                return {
+                    "next_state": current_state,  # Rester dans le même état
+                    "message": "Je n'ai pas compris votre âge. Pourriez-vous me dire quel âge vous avez en chiffres ?",
+                    "is_final": False,
+                }
 
-        # État suivant par défaut
-        print(f"Transition par défaut vers: {state_def.get('next', current_state)}")
-        return {
-            "next_state": state_def.get("next", current_state),
-            "message": state_def.get("message", "Comment puis-je vous aider ?"),
-            "is_final": state_def.get("is_final", False),
-            "eligibility_result": state_def.get("eligibility_result"),
-        }
+            # Vérification scolarisation dans les états concernés
+            if "schooling_verification" in current_state:
+                schooling_detected = False
+                text = nlp_data.get("text", "").lower() if nlp_data else ""
+                intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+
+                if "schooling" in entities:
+                    schooling_detected = True
+                elif intent == "yes" or "oui" in text:
+                    # Ajouter scolarisation aux données utilisateur si oui détecté
+                    if conversation_id not in self.user_data:
+                        self.user_data[conversation_id] = {}
+                    self.user_data[conversation_id]["schooling"] = True
+                    schooling_detected = True
+                elif intent == "no" or "non" in text or "pas" in text:
+                    # Ajouter scolarisation aux données utilisateur si non détecté
+                    if conversation_id not in self.user_data:
+                        self.user_data[conversation_id] = {}
+                    self.user_data[conversation_id]["schooling"] = False
+                    schooling_detected = True
+
+                    # Traitement spécial pour jeune sans RSA et non scolarisé
+                    if current_state == "schooling_verification_young_no_rsa":
+                        print("*** Détecté: jeune, sans RSA, non scolarisé ***")
+                        return {
+                            "next_state": "city_verification_young_no_rsa",
+                            "message": "Dans quelle ville habitez-vous ?",
+                            "is_final": False,
+                        }
+
+                if not schooling_detected:
+                    # Scolarisation non détectée alors qu'on est dans un état qui l'attend
+                    return {
+                        "next_state": current_state,  # Rester dans le même état
+                        "message": "Je n'ai pas compris si vous êtes actuellement scolarisé. Pourriez-vous répondre simplement par oui ou par non ?",
+                        "is_final": False,
+                    }
+
+            # Vérification ville dans les états concernés
+            if "city_verification" in current_state:
+                # Vérifier d'abord les codes postaux directement
+                text = nlp_data.get("text", "").lower() if nlp_data else ""
+                code_postal_pattern = r"93\s*[0-9]{3}"
+
+                # Tenter de trouver un code postal dans le texte
+                import re
+
+                code_match = re.search(code_postal_pattern, text)
+                if code_match:
+                    code_postal = code_match.group().replace(" ", "")
+
+                    # Mappage des codes postaux
+                    code_postal_mapping = {
+                        "93200": "saint-denis",
+                        "93240": "stains",
+                        "93380": "pierrefitte",
+                        "93400": "saint-ouen",
+                        "93800": "épinay-sur-seine",
+                        "93430": "villetaneuse",
+                        "93450": "île-saint-denis",
+                        "93300": "aubervilliers",
+                        "93120": "la-courneuve",
+                        "93370": "montfermeil",
+                    }
+
+                    if code_postal in code_postal_mapping:
+                        # Ajouter la ville aux données utilisateur
+                        if conversation_id not in self.user_data:
+                            self.user_data[conversation_id] = {}
+                        self.user_data[conversation_id]["city"] = code_postal_mapping[
+                            code_postal
+                        ]
+
+                        # Traitement spécifique pour jeune non RSA non scolarisé
+                        if current_state == "city_verification_young_no_rsa":
+                            city = code_postal_mapping[code_postal]
+                            ml_cities = [
+                                "saint-denis",
+                                "pierrefitte",
+                                "saint-ouen",
+                                "épinay-sur-seine",
+                                "villetaneuse",
+                                "île-saint-denis",
+                            ]
+
+                            if city in ml_cities:
+                                print(
+                                    f"*** Ville ML détectée via code postal: {city} ***"
+                                )
+                                return {
+                                    "next_state": "eligible_ml",
+                                    "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                                    "is_final": True,
+                                    "eligibility_result": "ML",
+                                }
+                # Si aucun code postal n'a été détecté, vérifier si la ville est manquante
+                elif "city" not in entities:
+                    # Ville non détectée alors qu'on est dans un état qui l'attend
+                    city_keywords = [
+                        "saint-denis",
+                        "st-denis",
+                        "saint denis",
+                        "stains",
+                        "pierrefitte",
+                        "pierrefitte-sur-seine",
+                        "saint-ouen",
+                        "st-ouen",
+                        "saint ouen",
+                        "épinay",
+                        "epinay",
+                        "épinay-sur-seine",
+                        "villetaneuse",
+                        "île-saint-denis",
+                        "ile-saint-denis",
+                        "île saint denis",
+                        "aubervilliers",
+                        "la courneuve",
+                        "la-courneuve",
+                        "montfermeil",
+                    ]
+
+                    # Vérifier si un mot-clé de ville est dans le texte
+                    city_found = False
+                    for city in city_keywords:
+                        if city in text:
+                            city_found = True
+                            # Ajouter la ville normalisée aux données utilisateur
+                            city_mapping = {
+                                "saint denis": "saint-denis",
+                                "st-denis": "saint-denis",
+                                "st denis": "saint-denis",
+                                "pierrefitte-sur-seine": "pierrefitte",
+                                "pierfitte": "pierrefitte",
+                                "pierrefite": "pierrefitte",
+                                "saint ouen": "saint-ouen",
+                                "st-ouen": "saint-ouen",
+                                "st ouen": "saint-ouen",
+                                "epinay": "épinay-sur-seine",
+                                "épinay": "épinay-sur-seine",
+                                "epinay-sur-seine": "épinay-sur-seine",
+                                "ile-saint-denis": "île-saint-denis",
+                                "ile saint denis": "île-saint-denis",
+                                "île saint denis": "île-saint-denis",
+                                "la courneuve": "la-courneuve",
+                            }
+                            normalized_city = city_mapping.get(city, city)
+                            if conversation_id not in self.user_data:
+                                self.user_data[conversation_id] = {}
+                            self.user_data[conversation_id]["city"] = normalized_city
+
+                            # Traitement spécifique pour jeune non RSA non scolarisé
+                            if current_state == "city_verification_young_no_rsa":
+                                ml_cities = [
+                                    "saint-denis",
+                                    "pierrefitte",
+                                    "saint-ouen",
+                                    "épinay-sur-seine",
+                                    "villetaneuse",
+                                    "île-saint-denis",
+                                ]
+
+                                if normalized_city in ml_cities:
+                                    print(
+                                        f"*** Ville ML détectée par mot-clé: {normalized_city} ***"
+                                    )
+                                    return {
+                                        "next_state": "eligible_ml",
+                                        "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                                        "is_final": True,
+                                        "eligibility_result": "ML",
+                                    }
+                            break
+
+                    if not city_found:
+                        return {
+                            "next_state": current_state,  # Rester dans le même état
+                            "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez parmi : Saint-Denis (93200), Stains (93240), Pierrefitte (93380), Saint-Ouen (93400), Épinay-sur-Seine (93800), Villetaneuse (93430), Île-Saint-Denis (93450), Aubervilliers (93300), La Courneuve (93120) ?",
+                            "is_final": False,
+                        }
+
+        # Vérifier si toutes les conditions sont remplies pour ML et appliquer un override
+        if conversation_id in self.user_data:
+            user_data = self.user_data[conversation_id]
+
+            # Cas spécifique: jeune (16-25.5) sans RSA, non scolarisé, habitant dans une ville ML
+            if (
+                user_data.get("age", 0) >= 16
+                and user_data.get("age", 0) <= 25.5
+                and user_data.get("rsa") is False
+                and user_data.get("schooling") is False
+                and "city" in user_data
+                and user_data["city"].lower()
+                in [
+                    "saint-denis",
+                    "pierrefitte",
+                    "saint-ouen",
+                    "épinay-sur-seine",
+                    "villetaneuse",
+                    "île-saint-denis",
+                ]
+            ):
+
+                print("*** CONDITIONS ML DÉTECTÉES - OVERRIDE APPLIQUÉ ***")
+                return {
+                    "next_state": "eligible_ml",
+                    "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                    "is_final": True,
+                    "eligibility_result": "ML",
+                }
+
+        # État suivant par défaut - si on arrive ici, c'est qu'on n'a pas pu interpréter la réponse
+        # Redemander en fonction de l'état actuel
+        if "age_verification" in current_state:
+            return {
+                "next_state": current_state,
+                "message": "Je n'ai pas compris votre âge. Pourriez-vous me donner votre âge en chiffres, par exemple 25 ?",
+                "is_final": False,
+            }
+        elif "rsa_verification" in current_state:
+            return {
+                "next_state": current_state,
+                "message": "Je n'ai pas compris si vous êtes bénéficiaire du RSA. Pouvez-vous répondre simplement par oui ou par non ?",
+                "is_final": False,
+            }
+        elif "schooling_verification" in current_state:
+            return {
+                "next_state": current_state,
+                "message": "Je n'ai pas compris si vous êtes actuellement scolarisé. Pouvez-vous répondre simplement par oui ou par non ?",
+                "is_final": False,
+            }
+        elif "city_verification" in current_state:
+            return {
+                "next_state": current_state,
+                "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, etc.",
+                "is_final": False,
+            }
+        else:
+            # Transition par défaut générique
+            print(f"Transition par défaut vers: {state_def.get('next', current_state)}")
+            return {
+                "next_state": state_def.get("next", current_state),
+                "message": state_def.get("message", "Comment puis-je vous aider ?"),
+                "is_final": state_def.get("is_final", False),
+                "eligibility_result": state_def.get("eligibility_result"),
+            }
 
     def get_rules(self):
         """Retourner les règles actuelles"""
@@ -503,6 +837,25 @@ class EligibilityEvaluator:
                 result["age"] = existing_data["age"]
                 return result
 
+            # Extraire la ville des données NLP
+            text = nlp_data.get("text", "").lower()
+
+            # Vérifier d'abord si un code postal 93XXX est mentionné et si nous sommes dans un contexte de ville
+            if (
+                "ville" in text
+                or "habite" in text
+                or "code" in text
+                or "postal" in text
+            ):
+                postcode_pattern = r"93\s*[0-9]{3}"
+                postcode_match = re.search(postcode_pattern, text)
+                if postcode_match:
+                    # Ne pas interpréter code postal comme âge dans un contexte de ville
+                    print(
+                        f"Code postal trouvé dans un contexte de ville: {postcode_match.group()}"
+                    )
+                    return result
+
             # Sinon, extraire l'âge des données NLP ou du message utilisateur
             entities = nlp_data.get("entities", {})
 
@@ -512,7 +865,6 @@ class EligibilityEvaluator:
                 print(f"Âge extrait des entités NLP: {age}")
             else:
                 # Essayer d'extraire du texte brut
-                text = nlp_data.get("text", "").lower()
                 print(f"Tentative d'extraction d'âge du texte: '{text}'")
 
                 try:
@@ -523,35 +875,148 @@ class EligibilityEvaluator:
                         result["age"] = age
                         print(f"Âge extrait du texte (chiffres): {age}")
                     else:
-                        # Tenter de trouver des nombres écrits en toutes lettres
+                        # Liste étendue de nombres écrits en toutes lettres
                         number_words = {
+                            # Nombres de 16 à 19
+                            "seize": 16,
+                            "16 ans": 16,
+                            "dix-sept": 17,
+                            "dix sept": 17,
+                            "dixsept": 17,
+                            "17 ans": 17,
                             "dix-huit": 18,
                             "dix huit": 18,
                             "dixhuit": 18,
+                            "18 ans": 18,
+                            "dix-neuf": 19,
+                            "dix neuf": 19,
+                            "dixneuf": 19,
+                            "19 ans": 19,
+                            # Nombres de 20 à 29
                             "vingt": 20,
+                            "20 ans": 20,
                             "vingt et un": 21,
                             "vingt-et-un": 21,
+                            "21 ans": 21,
                             "vingt-deux": 22,
                             "vingt deux": 22,
+                            "22 ans": 22,
                             "vingt-trois": 23,
                             "vingt trois": 23,
+                            "23 ans": 23,
                             "vingt-quatre": 24,
                             "vingt quatre": 24,
+                            "24 ans": 24,
                             "vingt-cinq": 25,
                             "vingt cinq": 25,
+                            "25 ans": 25,
                             "vingt-six": 26,
                             "vingt six": 26,
+                            "26 ans": 26,
                             "vingt-sept": 27,
                             "vingt sept": 27,
+                            "27 ans": 27,
                             "vingt-huit": 28,
                             "vingt huit": 28,
+                            "28 ans": 28,
                             "vingt-neuf": 29,
                             "vingt neuf": 29,
+                            "29 ans": 29,
+                            # Nombres de 30 à 39
                             "trente": 30,
+                            "30 ans": 30,
+                            "trente et un": 31,
+                            "trente-et-un": 31,
+                            "31 ans": 31,
+                            "trente-deux": 32,
+                            "trente deux": 32,
+                            "32 ans": 32,
+                            "trente-trois": 33,
+                            "trente trois": 33,
+                            "33 ans": 33,
+                            "trente-quatre": 34,
+                            "trente quatre": 34,
+                            "34 ans": 34,
                             "trente-cinq": 35,
                             "trente cinq": 35,
+                            "35 ans": 35,
+                            "trente-six": 36,
+                            "trente six": 36,
+                            "36 ans": 36,
+                            "trente-sept": 37,
+                            "trente sept": 37,
+                            "37 ans": 37,
+                            "trente-huit": 38,
+                            "trente huit": 38,
+                            "38 ans": 38,
+                            "trente-neuf": 39,
+                            "trente neuf": 39,
+                            "39 ans": 39,
+                            # Nombres de 40 à 49
                             "quarante": 40,
+                            "40 ans": 40,
+                            "quarante et un": 41,
+                            "quarante-et-un": 41,
+                            "41 ans": 41,
+                            "quarante-deux": 42,
+                            "quarante deux": 42,
+                            "42 ans": 42,
+                            "quarante-trois": 43,
+                            "quarante trois": 43,
+                            "43 ans": 43,
+                            "quarante-quatre": 44,
+                            "quarante quatre": 44,
+                            "44 ans": 44,
+                            "quarante-cinq": 45,
+                            "quarante cinq": 45,
+                            "45 ans": 45,
+                            "quarante-six": 46,
+                            "quarante six": 46,
+                            "46 ans": 46,
+                            "quarante-sept": 47,
+                            "quarante sept": 47,
+                            "47 ans": 47,
+                            "quarante-huit": 48,
+                            "quarante huit": 48,
+                            "48 ans": 48,
+                            "quarante-neuf": 49,
+                            "quarante neuf": 49,
+                            "49 ans": 49,
+                            # Nombres de 50 à 61
                             "cinquante": 50,
+                            "50 ans": 50,
+                            "cinquante et un": 51,
+                            "cinquante-et-un": 51,
+                            "51 ans": 51,
+                            "cinquante-deux": 52,
+                            "cinquante deux": 52,
+                            "52 ans": 52,
+                            "cinquante-trois": 53,
+                            "cinquante trois": 53,
+                            "53 ans": 53,
+                            "cinquante-quatre": 54,
+                            "cinquante quatre": 54,
+                            "54 ans": 54,
+                            "cinquante-cinq": 55,
+                            "cinquante cinq": 55,
+                            "55 ans": 55,
+                            "cinquante-six": 56,
+                            "cinquante six": 56,
+                            "56 ans": 56,
+                            "cinquante-sept": 57,
+                            "cinquante sept": 57,
+                            "57 ans": 57,
+                            "cinquante-huit": 58,
+                            "cinquante huit": 58,
+                            "58 ans": 58,
+                            "cinquante-neuf": 59,
+                            "cinquante neuf": 59,
+                            "59 ans": 59,
+                            "soixante": 60,
+                            "60 ans": 60,
+                            "soixante et un": 61,
+                            "soixante-et-un": 61,
+                            "61 ans": 61,
                         }
 
                         for word, value in number_words.items():
@@ -573,61 +1038,258 @@ class EligibilityEvaluator:
 
             # Extraire la ville des données NLP
             entities = nlp_data.get("entities", {})
+            text = nlp_data.get("text", "").lower()
 
+            # Vérifier d'abord si un code postal de Seine-Saint-Denis est présent
+            postcode_pattern = r"93\s*[0-9]{3}"
+            postcode_match = re.search(postcode_pattern, text)
+            if postcode_match:
+                postcode = (
+                    postcode_match.group()
+                    .replace(" ", "")
+                    .replace(".", "")
+                    .replace(",", "")
+                )
+
+                # Mappage des codes postaux
+                code_postal_mapping = {
+                    "93200": "saint-denis",
+                    "93240": "stains",
+                    "93380": "pierrefitte",
+                    "93400": "saint-ouen",
+                    "93800": "épinay-sur-seine",
+                    "93430": "villetaneuse",
+                    "93450": "île-saint-denis",
+                    "93300": "aubervilliers",
+                    "93120": "la-courneuve",
+                    "93370": "montfermeil",
+                }
+
+                if postcode in code_postal_mapping:
+                    result["city"] = code_postal_mapping[postcode]
+                    print(
+                        f"Ville extraite via code postal: {postcode} => {result['city']}"
+                    )
+                    return result
+
+            # Si pas de code postal trouvé, continuer avec la logique existante
             if "city" in entities:
                 city = entities["city"]
                 result["city"] = city.lower()
                 print(f"Ville extraite des entités NLP: {city}")
             else:
                 # Essayer d'extraire du texte brut
-                text = nlp_data.get("text", "").lower()
                 print(f"Tentative d'extraction de ville du texte: '{text}'")
 
                 cities = [
+                    # Saint-Denis
                     "saint-denis",
-                    "st-denis",
                     "saint denis",
+                    "st-denis",
                     "st denis",
-                    "stains",
+                    "93200",
+                    "93 200",
+                    "93.200",
+                    "932 00",
+                    "93-200",
+                    "quatre-vingt-treize deux cents",
+                    "quatre vingt treize deux cents",
+                    # Pierrefitte-sur-Seine
                     "pierrefitte",
+                    "pierrefitte-sur-seine",
                     "pierfitte",
                     "pierrefite",
+                    "93380",
+                    "93 380",
+                    "93.380",
+                    "933 80",
+                    "93-380",
+                    "quatre-vingt-treize trois cent quatre-vingts",
+                    "quatre vingt treize trois cent quatre vingts",
+                    # Saint-Ouen-sur-Seine
                     "saint-ouen",
-                    "st-ouen",
                     "saint ouen",
+                    "st-ouen",
                     "st ouen",
+                    "saint-ouen-sur-seine",
+                    "93400",
+                    "93 400",
+                    "93.400",
+                    "934 00",
+                    "93-400",
+                    "quatre-vingt-treize quatre cents",
+                    "quatre vingt treize quatre cents",
+                    # Épinay-sur-Seine
                     "epinay",
                     "épinay",
                     "epinay-sur-seine",
                     "épinay-sur-seine",
+                    "93800",
+                    "93 800",
+                    "93.800",
+                    "938 00",
+                    "93-800",
+                    "quatre-vingt-treize huit cents",
+                    "quatre vingt treize huit cents",
+                    # Villetaneuse
                     "villetaneuse",
+                    "93430",
+                    "93 430",
+                    "93.430",
+                    "934 30",
+                    "93-430",
+                    "quatre-vingt-treize quatre cent trente",
+                    "quatre vingt treize quatre cent trente",
+                    # Île-Saint-Denis
                     "ile-saint-denis",
                     "île-saint-denis",
                     "ile saint denis",
                     "île saint denis",
+                    "93450",
+                    "93 450",
+                    "93.450",
+                    "934 50",
+                    "93-450",
+                    "quatre-vingt-treize quatre cent cinquante",
+                    "quatre vingt treize quatre cent cinquante",
+                    # Aubervilliers
                     "aubervilliers",
-                    "la-courneuve",
+                    "93300",
+                    "93 300",
+                    "93.300",
+                    "933 00",
+                    "93-300",
+                    "quatre-vingt-treize trois cents",
+                    "quatre vingt treize trois cents",
+                    # La Courneuve
                     "la courneuve",
+                    "la-courneuve",
+                    "93120",
+                    "93 120",
+                    "93.120",
+                    "931 20",
+                    "93-120",
+                    "quatre-vingt-treize cent vingt",
+                    "quatre vingt treize cent vingt",
+                    # Stains
+                    "stains",
+                    "93240",
+                    "93 240",
+                    "93.240",
+                    "932 40",
+                    "93-240",
+                    "quatre-vingt-treize deux cent quarante",
+                    "quatre vingt treize deux cent quarante",
+                    # Montfermeil
                     "montfermeil",
+                    "93370",
+                    "93 370",
+                    "93.370",
+                    "933 70",
+                    "93-370",
+                    "quatre-vingt-treize trois cent soixante-dix",
+                    "quatre vingt treize trois cent soixante dix",
                 ]
 
                 # Normalisation des variantes de noms de villes vers leur forme standard
                 city_mapping = {
-                    "st-denis": "saint-denis",
+                    # Saint-Denis
                     "saint denis": "saint-denis",
+                    "st-denis": "saint-denis",
                     "st denis": "saint-denis",
+                    "93200": "saint-denis",
+                    "93 200": "saint-denis",
+                    "93.200": "saint-denis",
+                    "932 00": "saint-denis",
+                    "93-200": "saint-denis",
+                    "quatre-vingt-treize deux cents": "saint-denis",
+                    "quatre vingt treize deux cents": "saint-denis",
+                    # Stains
+                    "93240": "stains",
+                    "93 240": "stains",
+                    "93.240": "stains",
+                    "932 40": "stains",
+                    "93-240": "stains",
+                    "quatre-vingt-treize deux cent quarante": "stains",
+                    "quatre vingt treize deux cent quarante": "stains",
+                    # Pierrefitte
+                    "pierrefitte-sur-seine": "pierrefitte",
                     "pierfitte": "pierrefitte",
                     "pierrefite": "pierrefitte",
-                    "st-ouen": "saint-ouen",
+                    "93380": "pierrefitte",
+                    "93 380": "pierrefitte",
+                    "93.380": "pierrefitte",
+                    "933 80": "pierrefitte",
+                    "93-380": "pierrefitte",
+                    "quatre-vingt-treize trois cent quatre-vingts": "pierrefitte",
+                    "quatre vingt treize trois cent quatre vingts": "pierrefitte",
+                    # Saint-Ouen
                     "saint ouen": "saint-ouen",
+                    "st-ouen": "saint-ouen",
                     "st ouen": "saint-ouen",
+                    "saint-ouen-sur-seine": "saint-ouen",
+                    "93400": "saint-ouen",
+                    "93 400": "saint-ouen",
+                    "93.400": "saint-ouen",
+                    "934 00": "saint-ouen",
+                    "93-400": "saint-ouen",
+                    "quatre-vingt-treize quatre cents": "saint-ouen",
+                    "quatre vingt treize quatre cents": "saint-ouen",
+                    # Épinay-sur-Seine
                     "epinay": "épinay-sur-seine",
                     "épinay": "épinay-sur-seine",
                     "epinay-sur-seine": "épinay-sur-seine",
+                    "93800": "épinay-sur-seine",
+                    "93 800": "épinay-sur-seine",
+                    "93.800": "épinay-sur-seine",
+                    "938 00": "épinay-sur-seine",
+                    "93-800": "épinay-sur-seine",
+                    "quatre-vingt-treize huit cents": "épinay-sur-seine",
+                    "quatre vingt treize huit cents": "épinay-sur-seine",
+                    # Villetaneuse
+                    "93430": "villetaneuse",
+                    "93 430": "villetaneuse",
+                    "93.430": "villetaneuse",
+                    "934 30": "villetaneuse",
+                    "93-430": "villetaneuse",
+                    "quatre-vingt-treize quatre cent trente": "villetaneuse",
+                    "quatre vingt treize quatre cent trente": "villetaneuse",
+                    # Île-Saint-Denis
                     "ile-saint-denis": "île-saint-denis",
                     "ile saint denis": "île-saint-denis",
                     "île saint denis": "île-saint-denis",
+                    "93450": "île-saint-denis",
+                    "93 450": "île-saint-denis",
+                    "93.450": "île-saint-denis",
+                    "934 50": "île-saint-denis",
+                    "93-450": "île-saint-denis",
+                    "quatre-vingt-treize quatre cent cinquante": "île-saint-denis",
+                    "quatre vingt treize quatre cent cinquante": "île-saint-denis",
+                    # Aubervilliers
+                    "93300": "aubervilliers",
+                    "93 300": "aubervilliers",
+                    "93.300": "aubervilliers",
+                    "933 00": "aubervilliers",
+                    "93-300": "aubervilliers",
+                    "quatre-vingt-treize trois cents": "aubervilliers",
+                    "quatre vingt treize trois cents": "aubervilliers",
+                    # La Courneuve
                     "la courneuve": "la-courneuve",
+                    "93120": "la-courneuve",
+                    "93 120": "la-courneuve",
+                    "93.120": "la-courneuve",
+                    "931 20": "la-courneuve",
+                    "93-120": "la-courneuve",
+                    "quatre-vingt-treize cent vingt": "la-courneuve",
+                    "quatre vingt treize cent vingt": "la-courneuve",
+                    # Montfermeil
+                    "93370": "montfermeil",
+                    "93 370": "montfermeil",
+                    "93.370": "montfermeil",
+                    "933 70": "montfermeil",
+                    "93-370": "montfermeil",
+                    "quatre-vingt-treize trois cent soixante-dix": "montfermeil",
+                    "quatre vingt treize trois cent soixante dix": "montfermeil",
                 }
 
                 for city in cities:
@@ -679,38 +1341,118 @@ class EligibilityEvaluator:
                                 "saint denis",
                                 "st-denis",
                                 "st denis",
+                                "93200",
+                                "93 200",
+                                "93.200",
+                                "932 00",
+                                "93-200",
+                                "quatre-vingt-treize deux cents",
+                                "quatre vingt treize deux cents",
                             ],
-                            "stains": ["stains"],
-                            "pierrefitte": ["pierrefitte", "pierrefite", "pierfitte"],
-                            "saint-denis": [
-                                "saint-denis",
-                                "saint denis",
-                                "st-denis",
-                                "st denis",
+                            "stains": [
+                                "stains",
+                                "93240",
+                                "93 240",
+                                "93.240",
+                                "932 40",
+                                "93-240",
+                                "quatre-vingt-treize deux cent quarante",
+                                "quatre vingt treize deux cent quarante",
                             ],
-                            "stains": ["stains"],
-                            "pierrefitte": ["pierrefitte", "pierrefite", "pierfitte"],
+                            "pierrefitte": [
+                                "pierrefitte",
+                                "pierrefitte-sur-seine",
+                                "pierfitte",
+                                "pierrefite",
+                                "93380",
+                                "93 380",
+                                "93.380",
+                                "933 80",
+                                "93-380",
+                                "quatre-vingt-treize trois cent quatre-vingts",
+                                "quatre vingt treize trois cent quatre vingts",
+                            ],
                             "saint-ouen": [
                                 "saint-ouen",
                                 "saint ouen",
                                 "st-ouen",
                                 "st ouen",
+                                "saint-ouen-sur-seine",
+                                "93400",
+                                "93 400",
+                                "93.400",
+                                "934 00",
+                                "93-400",
+                                "quatre-vingt-treize quatre cents",
+                                "quatre vingt treize quatre cents",
                             ],
                             "épinay-sur-seine": [
-                                "épinay-sur-seine",
-                                "epinay-sur-seine",
-                                "épinay",
                                 "epinay",
+                                "épinay",
+                                "epinay-sur-seine",
+                                "épinay-sur-seine",
+                                "93800",
+                                "93 800",
+                                "93.800",
+                                "938 00",
+                                "93-800",
+                                "quatre-vingt-treize huit cents",
+                                "quatre vingt treize huit cents",
                             ],
-                            "villetaneuse": ["villetaneuse"],
+                            "villetaneuse": [
+                                "villetaneuse",
+                                "93430",
+                                "93 430",
+                                "93.430",
+                                "934 30",
+                                "93-430",
+                                "quatre-vingt-treize quatre cent trente",
+                                "quatre vingt treize quatre cent trente",
+                            ],
                             "île-saint-denis": [
-                                "île-saint-denis",
                                 "ile-saint-denis",
-                                "île saint denis",
+                                "île-saint-denis",
                                 "ile saint denis",
+                                "île saint denis",
+                                "93450",
+                                "93 450",
+                                "93.450",
+                                "934 50",
+                                "93-450",
+                                "quatre-vingt-treize quatre cent cinquante",
+                                "quatre vingt treize quatre cent cinquante",
                             ],
-                            "aubervilliers": ["aubervilliers"],
-                            "la-courneuve": ["la-courneuve", "la courneuve"],
+                            "aubervilliers": [
+                                "aubervilliers",
+                                "93300",
+                                "93 300",
+                                "93.300",
+                                "933 00",
+                                "93-300",
+                                "quatre-vingt-treize trois cents",
+                                "quatre vingt treize trois cents",
+                            ],
+                            "la-courneuve": [
+                                "la courneuve",
+                                "la-courneuve",
+                                "93120",
+                                "93 120",
+                                "93.120",
+                                "931 20",
+                                "93-120",
+                                "quatre-vingt-treize cent vingt",
+                                "quatre vingt treize cent vingt",
+                            ],
+                            "montfermeil": [
+                                "montfermeil",
+                                "93370",
+                                "93 370",
+                                "93.370",
+                                "933 70",
+                                "93-370",
+                                "quatre-vingt-treize trois cent soixante-dix",
+                                "quatre vingt treize trois cent soixante dix",
+                            ],
                         }
 
                         # Vérifier si la ville entrée correspond à l'une des villes normalisées dans la liste
