@@ -210,7 +210,7 @@ class ConversationManager:
             if current_state == "initial":
                 return {
                     "next_state": "consent",
-                    "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
+                    "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
                     "is_final": False,
                 }
             elif current_state == "consent":
