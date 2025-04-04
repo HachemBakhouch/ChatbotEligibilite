@@ -228,6 +228,7 @@ body {
     min-width: 44px;
 }
 
+/*
 .pdf-generation {
     padding: 15px;
     display: flex;
@@ -249,7 +250,7 @@ body {
     background-color: #ccc;
     cursor: not-allowed;
 }
-
+*/
 .speaking-indicator {
     display: inline-block;
     width: 12px;

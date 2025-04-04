@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const micButton = document.getElementById('mic-button');
     const recordingContainer = document.getElementById('recording-container');
     const recordingPauseBtn = document.querySelector('.recording-pause-btn');
-    const generatePdfButton = document.getElementById('generate-pdf-button');
+    //const generatePdfButton = document.getElementById('generate-pdf-button');
 
     // Conversation Variables
     let conversationId = null;
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Activate PDF generation if conversation is finished
                     if (data.is_final) {
                         conversationFinished = true;
-                        generatePdfButton.disabled = false;
+                        //generatePdfButton.disabled = false;
                     }
                 })
                 .catch(error => {
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Activate PDF generation if conversation is finished
                     if (data.is_final) {
                         conversationFinished = true;
-                        generatePdfButton.disabled = false;
+                        //generatePdfButton.disabled = false;
                     }
                 })
                 .catch(error => {
@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Activate PDF generation if conversation is finished
                 if (data.is_final) {
                     conversationFinished = true;
-                    generatePdfButton.disabled = false;
+                    //generatePdfButton.disabled = false;
                 }
             })
             .catch(error => {
@@ -584,8 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        generatePdfButton.disabled = true;
-        generatePdfButton.textContent = 'Génération en cours...';
+        //generatePdfButton.disabled = true;
+        //generatePdfButton.textContent = 'Génération en cours...';
 
         fetch(`${API_BASE_URL}/generate-pdf`, {
             method: 'POST',
@@ -606,15 +606,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     addBotMessage('Le PDF a été généré avec succès. Vous pouvez le télécharger depuis votre espace personnel.');
                 }
 
-                generatePdfButton.disabled = false;
-                generatePdfButton.textContent = 'Générer PDF';
+                //generatePdfButton.disabled = false;
+                //generatePdfButton.textContent = 'Générer PDF';
             })
             .catch(error => {
                 console.error('Error generating PDF:', error);
                 addBotMessage('Erreur lors de la génération du PDF. Veuillez réessayer.');
 
-                generatePdfButton.disabled = false;
-                generatePdfButton.textContent = 'Générer PDF';
+                //generatePdfButton.disabled = false;
+                //generatePdfButton.textContent = 'Générer PDF';
             });
     }
 
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     micButton.addEventListener('click', startRecording);
     recordingPauseBtn.addEventListener('click', stopRecording);
-    generatePdfButton.addEventListener('click', generatePDF);
+    //generatePdfButton.addEventListener('click', generatePDF);
 
     // Initialize Conversation
     initConversation();
