@@ -54,12 +54,15 @@ class ConversationManager:
             print(f"User data updated: {json.dumps(conversation['user_data'])}")
 
         # Get next step from decision tree
+        print(f"État avant décision : {conversation['current_state']}")
         decision_response = self._process_with_decision_tree(
             conversation_id,
             conversation["current_state"],
             nlp_response,
             conversation.get("user_data", {}),
         )
+        print(f"Réponse de l'arbre de décision : {json.dumps(decision_response)}")
+        print(f"Nouvel état : {decision_response.get('next_state')}")
 
         # Update conversation state
         conversation["current_state"] = decision_response.get(
@@ -218,13 +221,13 @@ class ConversationManager:
                 if intent == "yes":
                     return {
                         "next_state": "age_verification",
-                        "message": "Merci. Commençons par votre âge. Quel âge avez-vous ?",
+                        "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
                         "is_final": False,
                     }
                 else:
                     return {
                         "next_state": "age_verification",
-                        "message": "Merci. Commençons par votre âge. Quel âge avez-vous ?",
+                        "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
                         "is_final": False,
                     }
 
@@ -292,13 +295,13 @@ class ConversationManager:
                 if rsa is True:
                     return {
                         "next_state": "schooling_verification_young_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
                 elif rsa is False:
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
                 else:
@@ -325,13 +328,13 @@ class ConversationManager:
                 if rsa is True:
                     return {
                         "next_state": "schooling_verification_adult_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
                 elif rsa is False:
                     return {
                         "next_state": "schooling_verification_adult_no_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
                 else:
@@ -345,7 +348,7 @@ class ConversationManager:
             elif current_state == "schooling_verification_young_rsa":
                 return {
                     "next_state": "city_verification_young_rsa",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "is_final": False,
                 }
 
@@ -366,20 +369,20 @@ class ConversationManager:
                 if schooling is True:
                     return {
                         "next_state": "not_eligible_schooling",
-                        "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes si vous êtes scolarisé et ne bénéficiez pas du RSA.",
+                        "message": "Malheureusement, tu n’es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d’accompagnement pour t'aider dans ta recherche d’emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
                         "is_final": True,
                         "eligibility_result": "Non éligible (scolarisation)",
                     }
                 elif schooling is False:
                     return {
                         "next_state": "city_verification_young_no_rsa",
-                        "message": "Dans quelle ville habitez-vous ?",
+                        "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         "is_final": False,
                     }
                 else:
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ? Veuillez répondre par oui ou non.",
+                        "message": "D'accord, tu es scolarisé(e)? Veuillez répondre par oui ou non.",
                         "is_final": False,
                     }
 
@@ -387,7 +390,7 @@ class ConversationManager:
             elif current_state == "schooling_verification_adult_rsa":
                 return {
                     "next_state": "city_verification_adult_rsa",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "is_final": False,
                 }
 
@@ -395,7 +398,7 @@ class ConversationManager:
             elif current_state == "schooling_verification_adult_no_rsa":
                 return {
                     "next_state": "city_verification_adult_no_rsa",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "is_final": False,
                 }
 
@@ -412,14 +415,14 @@ class ConversationManager:
                     if city in ["saint-denis", "stains", "pierrefitte"]:
                         return {
                             "next_state": "eligible_ali",
-                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         }
                     else:
                         return {
                             "next_state": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         }
@@ -455,14 +458,14 @@ class ConversationManager:
                     ):
                         return {
                             "next_state": "eligible_ml",
-                            "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ML",
                         }
                     else:
                         return {
                             "next_state": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         }
@@ -486,14 +489,14 @@ class ConversationManager:
                     if city in ["saint-denis", "stains", "pierrefitte"]:
                         return {
                             "next_state": "eligible_ali",
-                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         }
                     else:
                         return {
                             "next_state": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         }
@@ -533,14 +536,14 @@ class ConversationManager:
                     ):
                         return {
                             "next_state": "eligible_plie",
-                            "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "PLIE",
                         }
                     else:
                         return {
                             "next_state": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         }

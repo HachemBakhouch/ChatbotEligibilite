@@ -56,7 +56,7 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "age_verification",
-                            "message": "Merci. Commençons par votre âge. Quel âge avez-vous ?",
+                            "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
                         },
                         "no": {
                             "next": "end",
@@ -102,11 +102,11 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                         "no": {
                             "next": "schooling_verification_young_no_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                     },
                 },
@@ -116,44 +116,44 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                         "no": {
                             "next": "schooling_verification_young_no_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                     },
                 },
                 "schooling_verification_young_rsa": {
                     "next": "city_verification_young_rsa",
-                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "message": "D'accord, tu es scolarisé(e)?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_young_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                         "no": {
                             "next": "city_verification_young_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                     },
                 },
                 "city_verification_young_rsa": {
                     "next": "result",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "process": "extract_city",
                     "transitions": [
                         {
                             "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
                             "next": "eligible_ali",
-                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         },
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -161,36 +161,36 @@ class EligibilityEvaluator:
                 },
                 "schooling_verification_young_no_rsa": {
                     "next": "city_verification_young_no_rsa",
-                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "message": "D'accord, tu es scolarisé(e)?D'accord, tu es scolarisé(e)?",
                     "responses": {
                         "yes": {
                             "next": "not_eligible_schooling",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes si vous êtes scolarisé et ne bénéficiez pas du RSA.",
+                            "message": "Malheureusement, tu n’es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d’accompagnement pour t'aider dans ta recherche d’emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
                             "is_final": True,
                             "eligibility_result": "Non éligible (scolarisation)",
                         },
                         "no": {
                             "next": "city_verification_young_no_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                     },
                 },
                 "city_verification_young_no_rsa": {
                     "next": "result",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "process": "extract_city",
                     "transitions": [
                         {
                             "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'épinay', 'villetaneuse', 'ile-saint-denis', 'île-saint-denis']",
                             "next": "eligible_ml",
-                            "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ML",
                         },
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -202,44 +202,44 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_adult_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                         "no": {
                             "next": "schooling_verification_adult_no_rsa",
-                            "message": "Êtes-vous scolarisé actuellement ?",
+                            "message": "D'accord, tu es scolarisé(e)?",
                         },
                     },
                 },
                 "schooling_verification_adult_rsa": {
                     "next": "city_verification_adult_rsa",
-                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "message": "D'accord, tu es scolarisé(e)?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_adult_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                         "no": {
                             "next": "city_verification_adult_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                     },
                 },
                 "city_verification_adult_rsa": {
                     "next": "result",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "process": "extract_city",
                     "transitions": [
                         {
                             "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
                             "next": "eligible_ali",
-                            "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         },
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -247,51 +247,51 @@ class EligibilityEvaluator:
                 },
                 "schooling_verification_adult_no_rsa": {
                     "next": "city_verification_adult_no_rsa",
-                    "message": "Êtes-vous scolarisé actuellement ?",
+                    "message": "D'accord, tu es scolarisé(e)?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_adult_no_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                         "no": {
                             "next": "city_verification_adult_no_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                         },
                     },
                 },
                 "city_verification_adult_no_rsa": {
                     "next": "result",
-                    "message": "Dans quelle ville habitez-vous ?",
+                    "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                     "process": "extract_city",
                     "transitions": [
                         {
                             "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'épinay-sur-seine', 'ile-saint-denis', 'île-saint-denis', 'la-courneuve', 'la courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
                             "next": "eligible_plie",
-                            "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "PLIE",
                         },
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
                     ],
                 },
                 "eligible_ali": {
-                    "message": "Vous êtes éligible au programme ALI (Accompagnement Logement Insertion). Souhaitez-vous que je génère un rapport détaillé ?",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ALI",
                 },
                 "eligible_ml": {
-                    "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ML",
                 },
                 "eligible_plie": {
-                    "message": "Vous êtes éligible au programme PLIE (Plan Local pour l'Insertion et l'Emploi). Souhaitez-vous que je génère un rapport détaillé ?",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "PLIE",
                 },
@@ -301,7 +301,7 @@ class EligibilityEvaluator:
                     "eligibility_result": "Non éligible (âge)",
                 },
                 "not_eligible_city": {
-                    "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes sociaux dans votre ville actuelle.",
+                    "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
                     "is_final": True,
                     "eligibility_result": "Non éligible (ville)",
                 },
@@ -442,7 +442,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
             # Détection explicite de la réponse "oui"
@@ -460,7 +460,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": "schooling_verification_young_rsa",
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
 
@@ -477,7 +477,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": next_state,
-                        "message": "Êtes-vous scolarisé actuellement ?",
+                        "message": "D'accord, tu es scolarisé(e)?",
                         "is_final": False,
                     }
 
@@ -600,7 +600,7 @@ class EligibilityEvaluator:
                         print("*** Détecté: jeune, sans RSA, non scolarisé ***")
                         return {
                             "next_state": "city_verification_young_no_rsa",
-                            "message": "Dans quelle ville habitez-vous ?",
+                            "message": "Pour mieux t'aider, peux tu me préciser ton code postal ou le nom de ta ville?",
                             "is_final": False,
                         }
 
@@ -665,7 +665,7 @@ class EligibilityEvaluator:
                                 )
                                 return {
                                     "next_state": "eligible_ml",
-                                    "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                                     "is_final": True,
                                     "eligibility_result": "ML",
                                 }
@@ -741,7 +741,7 @@ class EligibilityEvaluator:
                                     )
                                     return {
                                         "next_state": "eligible_ml",
-                                        "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                                        "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                                         "is_final": True,
                                         "eligibility_result": "ML",
                                     }
@@ -779,7 +779,7 @@ class EligibilityEvaluator:
                 print("*** CONDITIONS ML DÉTECTÉES - OVERRIDE APPLIQUÉ ***")
                 return {
                     "next_state": "eligible_ml",
-                    "message": "Vous êtes éligible au programme ML (Mission Locale). Souhaitez-vous que je génère un rapport détaillé ?",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ML",
                 }
