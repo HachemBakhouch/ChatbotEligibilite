@@ -80,7 +80,7 @@ body {
 }
 
 .message {
-    max-width: 85%;
+    max-width: 67%;
     margin-bottom: 10px;
     word-wrap: break-word;
 }
@@ -112,12 +112,15 @@ body {
 }
 
 .bot-message {
-    background-color: #F1F2F6;
+    background-color: #e8e6e3;
     color: #232323;
     align-self: flex-start;
     padding: 10px;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    border-radius: 0 10px 10px 10px;
+    font-size: 0.8rem;
+    position: relative;
+    top: 3.2vw;
+    left: 1.2vw;
 }
 
 /* Styles pour les messages utilisateur */
@@ -144,11 +147,13 @@ body {
     width: auto;
     height: auto;
     margin: 0 10px;
+    position: relative;
+    left: 1vw;
+    top: 1.1vw;
 }
 
 .robot-avatar-icon {
-    width: 30px;
-    height: 30px;
+    width: 8.6vw;
     object-fit: contain;
     border: none;
 }
@@ -156,6 +161,7 @@ body {
 .user-container {
     flex-direction: row-reverse;
     justify-content: flex-start;
+    margin-top: 1vw;
 }
 
 .input-area {
@@ -187,9 +193,9 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     min-height: 44px;
-    min-width: 44px;
+    width: 15vw;
 }
 
 .send-btn svg,
@@ -302,7 +308,7 @@ body {
     border-top-left-radius: 8.73px;
     border-top-right-radius: 8.73px;
     border-bottom-left-radius: 8.73px;
-    padding: 8.73px;
+    padding-right: 8.73px;
     margin-top: 10px;
     display: flex;
     align-items: center;
@@ -340,12 +346,11 @@ body {
 }
 
 /* Modifications pour le conteneur d'enregistrement */
-.recording-container {
+.input-area .recording-container {
     /* Utiliser les mêmes dimensions que l'input-area */
-    width: 90%;
-    max-width: 350px;
+    width: 82%;
     height: auto;
-    min-height: 49.76px;
+    /* min-height: 49.76px; */
     /* Même valeur que l'input-area */
     background-color: #E8E6E3;
     border-radius: 10px;
@@ -358,10 +363,10 @@ body {
 
     /* Positionnement absolu pour superposition */
     position: absolute;
-    bottom: 85px;
+    top: 175.6vw;
     /* Ajuster selon la marge de l'input-area (10px) + hauteur de PDF button */
-    left: 50%;
-    transform: translateX(-50%);
+    left: 9vw;
+    /* transform: translateX(-50%); */
     z-index: 100;
 
     /* Même ombre que l'input-area si nécessaire */
@@ -441,7 +446,7 @@ body {
 
 /* Ajouter un léger espacement entre les messages consécutifs du même utilisateur */
 .user-container+.user-container {
-    margin-top: -5px;
+    margin-top: 0.3vw;
 }
 
 /* Style pour la transcription - qui sera un message distinct */
@@ -494,8 +499,9 @@ body {
     .chatbot-container {
         height: 90vh;
         margin: 5vh auto;
-        max-width: 600px;
+        max-width: 393px;
         border-radius: 15px;
+        background: url(assets/chat.png);
     }
 
     .recording-container {
@@ -518,6 +524,8 @@ body {
 @media (min-width: 1200px) {
     .chatbot-container {
         max-width: 700px;
+        background: url(assets/chat.png);
+        background-repeat: no-repeat;
     }
 
     .chat-area {
