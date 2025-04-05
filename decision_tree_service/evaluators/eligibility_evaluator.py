@@ -153,7 +153,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -190,7 +190,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -239,7 +239,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -274,7 +274,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "True",
                             "next": "not_eligible_city",
-                            "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (ville)",
                         },
@@ -301,7 +301,7 @@ class EligibilityEvaluator:
                     "eligibility_result": "Non éligible (âge)",
                 },
                 "not_eligible_city": {
-                    "message": "Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                    "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
                     "is_final": True,
                     "eligibility_result": "Non éligible (ville)",
                 },
