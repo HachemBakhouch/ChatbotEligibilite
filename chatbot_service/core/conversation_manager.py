@@ -415,7 +415,7 @@ class ConversationManager:
                     if city in ["saint-denis", "stains", "pierrefitte"]:
                         return {
                             "next_state": "eligible_ali",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='http://82.25.117.27/rendezvous/formulaire_ali.php' target='_blank'>Clique ici pour prendre un rendez-vous avec un conseiller</a>",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         }
@@ -458,7 +458,7 @@ class ConversationManager:
                     ):
                         return {
                             "next_state": "eligible_ml",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='http://82.25.117.27/rendezvous/formulaire_ml.php' target='_blank'>Clique ici pour prendre un rendez-vous avec un conseiller</a>",
                             "is_final": True,
                             "eligibility_result": "ML",
                         }
@@ -489,7 +489,7 @@ class ConversationManager:
                     if city in ["saint-denis", "stains", "pierrefitte"]:
                         return {
                             "next_state": "eligible_ali",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='http://82.25.117.27/rendezvous/formulaire_ali.php' target='_blank'>Clique ici pour prendre un rendez-vous avec un conseiller</a>",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         }
@@ -536,7 +536,7 @@ class ConversationManager:
                     ):
                         return {
                             "next_state": "eligible_plie",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. Cliquer ici pour prendre un rendez vous avec un conseiller",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='http://82.25.117.27/rendezvous/formulaire_plie.php' target='_blank'>Clique ici pour prendre un rendez-vous avec un conseiller</a>",
                             "is_final": True,
                             "eligibility_result": "PLIE",
                         }
