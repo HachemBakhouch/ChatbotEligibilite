@@ -129,6 +129,11 @@ def process_audio():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"service": "chatbot-service", "status": "healthy"})
+
+
 @app.route("/generate-pdf", methods=["POST"])
 def generate_pdf():
     """Generate PDF report for conversation"""
