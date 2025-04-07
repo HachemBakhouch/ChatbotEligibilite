@@ -1,0 +1,116 @@
+name: Deploy Chatbot Eligibilité
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_KEY }}
+
+      - name: Setup SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create deployment directory
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p /opt/chatbot-eligibilite"
+
+      - name: Copy project files
+        run: |
+          rsync -avz --exclude='.git' --exclude='.github' --exclude='node_modules' ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/chatbot-eligibilite/
+
+      - name: Create .env file
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cat > /opt/chatbot-eligibilite/deployment/docker/.env << EOF
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          EOF"
+
+      - name: Create Dockerfiles
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite && \
+          
+          # API Gateway Dockerfile
+          cat > api_gateway/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5000
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5000\", \"app:app\"]
+          EOF
+          
+          # Chatbot Service Dockerfile
+          cat > chatbot_service/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5001
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5001\", \"app:app\"]
+          EOF
+          
+          # Decision Tree Service Dockerfile
+          cat > decision_tree_service/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5004
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5004\", \"app:app\"]
+          EOF
+          
+          # NLP Service Dockerfile
+          cat > nlp_service/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5003
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5003\", \"app:app\"]
+          EOF
+          
+          # PDF Service Dockerfile
+          cat > pdf_service/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN mkdir -p output
+          RUN mkdir -p templates
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5005
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5005\", \"app:app\"]
+          EOF
+          
+          # STT Service Dockerfile
+          cat > stt_service/Dockerfile << 'EOF'
+          FROM python:3.9-slim
+          WORKDIR /app
+          COPY . /app/
+          RUN pip install --no-cache-dir -r requirements.txt
+          EXPOSE 5002
+          CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:5002\", \"app:app\"]
+          EOF
+          "
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite && \
+          if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yaml ]; then
+            cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
+          fi && \
+          cd /opt/chatbot-eligibilite/deployment/docker && docker-compose up -d --build"
+
+      - name: Check deployment status
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite/deployment/docker && docker-compose ps"
