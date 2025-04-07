@@ -22,3 +22,18 @@ secrets.json
 # Fichiers de base de données
 *.db
 *.sqlite3
+
+# Fichiers Docker
+.dockerignore
+docker-compose.override.yml
+
+# Fichiers générés par PDF service
+output/
+pdf_reports/
+
+# Dossiers de build Docker
+.docker-build/
+
+# Fichiers d'OS spécifiques
+.DS_Store
+Thumbs.db

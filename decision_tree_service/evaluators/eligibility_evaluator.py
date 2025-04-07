@@ -686,6 +686,9 @@ class EligibilityEvaluator:
                         "epinay",
                         "épinay-sur-seine",
                         "villetaneuse",
+                        "Ville Tanneuse",
+                        "ville-taneuse",
+                        "ville-tanneuse",
                         "île-saint-denis",
                         "ile-saint-denis",
                         "île saint denis",
@@ -1132,6 +1135,7 @@ class EligibilityEvaluator:
                     "quatre-vingt-treize huit cents",
                     "quatre vingt treize huit cents",
                     # Villetaneuse
+                    "Ville Tanneuse",
                     "villetaneuse",
                     "93430",
                     "93 430",
@@ -1247,6 +1251,9 @@ class EligibilityEvaluator:
                     "quatre-vingt-treize huit cents": "épinay-sur-seine",
                     "quatre vingt treize huit cents": "épinay-sur-seine",
                     # Villetaneuse
+                    "Ville Tanneuse": "villetaneuse",
+                    "Ville-tanneuse": "villetaneuse",
+                    "Ville Taneuse": "villetaneuse",
                     "93430": "villetaneuse",
                     "93 430": "villetaneuse",
                     "93.430": "villetaneuse",

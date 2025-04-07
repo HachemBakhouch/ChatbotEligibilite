@@ -11,6 +11,13 @@ services:
       - NLP_SERVICE_URL=http://nlp-service:5003
       - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
       - PDF_SERVICE_URL=http://pdf-service:5005
+    restart: always
+    depends_on:
+      - chatbot-service
+      - stt-service
+      - nlp-service
+      - decision-tree-service
+      - pdf-service
 
   chatbot-service:
     build: ./chatbot_service
@@ -19,6 +26,12 @@ services:
     environment:
       - NLP_SERVICE_URL=http://nlp-service:5003
       - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
+      - PDF_SERVICE_URL=http://pdf-service:5005
+    restart: always
+    depends_on:
+      - nlp-service
+      - decision-tree-service
+      - pdf-service
 
   stt-service:
     build: ./stt_service
@@ -26,6 +39,7 @@ services:
       - "5002:5002"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: always
 
   nlp-service:
     build: ./nlp_service
@@ -33,11 +47,13 @@ services:
       - "5003:5003"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: always
 
   decision-tree-service:
     build: ./decision_tree_service
     ports:
       - "5004:5004"
+    restart: always
 
   pdf-service:
     build: ./pdf_service
@@ -45,6 +61,19 @@ services:
       - "5005:5005"
     volumes:
       - pdf_reports:/app/reports
+    restart: always
+
+  web-client:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - API_BASE_URL=http://api-gateway:5000
+    restart: always
+    depends_on:
+      - api-gateway
 
 volumes:
   pdf_reports:
