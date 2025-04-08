@@ -92,7 +92,7 @@ def process_audio():
             return jsonify({"error": "Missing conversation_id or audio data"}), 400
 
         # URL du service STT codée en dur pour contourner le problème de Config
-        stt_service_url = "http://192.168.100.104:5002"
+        stt_service_url = Config.STT_SERVICE_URL
         print(f"Using hardcoded STT Service URL: {stt_service_url}")
 
         try:

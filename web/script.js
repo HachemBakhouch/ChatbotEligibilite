@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let speechQueue = [];
 
     // API URL
-    const API_BASE_URL = 'http://localhost:5001';
+    const API_BASE_URL = window.location.origin + '/api';
 
     // Conversation Initialization
     function initConversation() {

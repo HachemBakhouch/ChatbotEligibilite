@@ -5,14 +5,15 @@ class Config:
     # Server configuration
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 5001))
-    DEBUG = os.getenv("DEBUG", "True") == "True"
+    DEBUG = os.getenv("DEBUG", "False") == "True"  # Changer True en False
 
-    # Service URLs - assurez-vous que cette adresse est correcte
-    NLP_SERVICE_URL = os.getenv("NLP_SERVICE_URL", "http://localhost:5003")
+    # Service URLs - utiliser les noms des services Docker
+    NLP_SERVICE_URL = os.getenv("NLP_SERVICE_URL", "http://nlp-service:5003")
     DECISION_TREE_SERVICE_URL = os.getenv(
-        "DECISION_TREE_SERVICE_URL", "http://192.168.100.104:5004"
+        "DECISION_TREE_SERVICE_URL", "http://decision-tree-service:5004"
     )
-    PDF_SERVICE_URL = os.getenv("PDF_SERVICE_URL", "http://192.168.100.104:5005")
+    PDF_SERVICE_URL = os.getenv("PDF_SERVICE_URL", "http://pdf-service:5005")
+    STT_SERVICE_URL = os.getenv("STT_SERVICE_URL", "http://stt-service:5002")
 
     # Database configuration (for future use)
     DATABASE_URI = os.getenv("DATABASE_URI", "sqlite:///chatbot.db")
