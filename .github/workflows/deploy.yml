@@ -106,11 +106,11 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite && \
-          if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yaml ]; then
+          if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yml ]; then
             cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
           fi && \
-          cd /opt/chatbot-eligibilite/deployment/docker && docker-compose up -d --build"
+          cd /opt/chatbot-eligibilite/ && docker-compose up -d --build"
 
       - name: Check deployment status
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite/deployment/docker && docker-compose ps"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite/ && docker-compose ps"
