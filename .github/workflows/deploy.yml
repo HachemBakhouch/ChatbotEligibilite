@@ -106,7 +106,7 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /opt/chatbot-eligibilite && \
-          if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yml ]; then
+          if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yaml ]; then
             cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
           fi && \
           cd /opt/chatbot-eligibilite/ && docker-compose up -d --build"
