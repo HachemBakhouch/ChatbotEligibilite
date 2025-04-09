@@ -102,11 +102,11 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                         "no": {
                             "next": "schooling_verification_young_no_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                     },
                 },
@@ -116,17 +116,17 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                         "no": {
                             "next": "schooling_verification_young_no_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                     },
                 },
                 "schooling_verification_young_rsa": {
                     "next": "city_verification_young_rsa",
-                    "message": "D'accord, tu es scolarisé(e)?",
+                    "message": "D'accord, tu es scolarisé?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_young_rsa",
@@ -161,7 +161,7 @@ class EligibilityEvaluator:
                 },
                 "schooling_verification_young_no_rsa": {
                     "next": "city_verification_young_no_rsa",
-                    "message": "D'accord, tu es scolarisé(e)?D'accord, tu es scolarisé(e)?",
+                    "message": "D'accord, tu es scolarisé?",
                     "responses": {
                         "yes": {
                             "next": "not_eligible_schooling",
@@ -202,17 +202,17 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_adult_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                         "no": {
                             "next": "schooling_verification_adult_no_rsa",
-                            "message": "D'accord, tu es scolarisé(e)?",
+                            "message": "D'accord, tu es scolarisé?",
                         },
                     },
                 },
                 "schooling_verification_adult_rsa": {
                     "next": "city_verification_adult_rsa",
-                    "message": "D'accord, tu es scolarisé(e)?",
+                    "message": "D'accord, tu es scolarisé?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_adult_rsa",
@@ -247,7 +247,7 @@ class EligibilityEvaluator:
                 },
                 "schooling_verification_adult_no_rsa": {
                     "next": "city_verification_adult_no_rsa",
-                    "message": "D'accord, tu es scolarisé(e)?",
+                    "message": "D'accord, tu es scolarisé?",
                     "responses": {
                         "yes": {
                             "next": "city_verification_adult_no_rsa",
@@ -442,7 +442,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
             # Détection explicite de la réponse "oui"
@@ -460,7 +460,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": "schooling_verification_young_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
 
@@ -477,7 +477,7 @@ class EligibilityEvaluator:
                     )
                     return {
                         "next_state": next_state,
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
 

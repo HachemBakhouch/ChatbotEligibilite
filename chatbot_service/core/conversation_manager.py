@@ -295,13 +295,13 @@ class ConversationManager:
                 if rsa is True:
                     return {
                         "next_state": "schooling_verification_young_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
                 elif rsa is False:
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
                 else:
@@ -328,13 +328,13 @@ class ConversationManager:
                 if rsa is True:
                     return {
                         "next_state": "schooling_verification_adult_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
                 elif rsa is False:
                     return {
                         "next_state": "schooling_verification_adult_no_rsa",
-                        "message": "D'accord, tu es scolarisé(e)?",
+                        "message": "D'accord, tu es scolarisé?",
                         "is_final": False,
                     }
                 else:
@@ -382,7 +382,7 @@ class ConversationManager:
                 else:
                     return {
                         "next_state": "schooling_verification_young_no_rsa",
-                        "message": "D'accord, tu es scolarisé(e)? Veuillez répondre par oui ou non.",
+                        "message": "D'accord, tu es scolarisé? Veuillez répondre par oui ou non.",
                         "is_final": False,
                     }
 
