@@ -110,9 +110,8 @@ jobs:
             cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
           fi && \
           cd /opt/chatbot-eligibilite/ && \
-          # Spécifier une version précise de docker-compose
-          docker compose version && \
-          docker-compose -f docker-compose.yml up -d --build"
+          # Utiliser la commande complète pour éviter des problèmes de version
+          /usr/local/bin/docker-compose up -d --build"
 
       - name: Check deployment status
         run: |
