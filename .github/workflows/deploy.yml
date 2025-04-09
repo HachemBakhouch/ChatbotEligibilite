@@ -109,7 +109,10 @@ jobs:
           if [ -f /home/debian/persist/projects/ChatbotEligibilite/docker-compose.yaml ]; then
             cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
           fi && \
-          cd /opt/chatbot-eligibilite/ && docker-compose -f docker-compose.yml up -d --build"
+          cd /opt/chatbot-eligibilite/ && \
+          # Spécifier une version précise de docker-compose
+          docker compose version && \
+          docker-compose -f docker-compose.yml up -d --build"
 
       - name: Check deployment status
         run: |
