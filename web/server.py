@@ -24,7 +24,7 @@ print(f"Fichiers dans le répertoire: {files}")
 def index():
     print("Requête reçue sur '/'")
     try:
-        return send_from_directory(".", "index.html")
+        return send_from_directory(".", "index.html", mimetype="text/html")
     except Exception as e:
         print(f"Erreur: {str(e)}")
         return f"Erreur: {str(e)}", 500

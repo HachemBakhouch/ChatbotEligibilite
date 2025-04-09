@@ -564,3 +564,14 @@ body {
         padding: 5px;
     }
 }
+
+.bot-message a {
+    color: #3720BC;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.bot-message a:hover {
+    text-decoration: none;
+    color: #ED450F;
+}

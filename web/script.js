@@ -473,6 +473,16 @@ document.addEventListener('DOMContentLoaded', function () {
         // Utiliser innerHTML pour afficher les liens cliquables
         messageDiv.innerHTML = text;
 
+        // Ajouter un gestionnaire pour les liens dans le message
+        const links = messageDiv.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.stopPropagation();  // Empêcher la propagation du clic
+                // Ouvrir le lien dans un nouvel onglet
+                window.open(link.href, '_blank');
+            });
+        });
+
         // Speaking Indicator
         const speakingIndicator = document.createElement('span');
         speakingIndicator.classList.add('speaking-indicator');
