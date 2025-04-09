@@ -1,4 +1,4 @@
-﻿version: '3'
+version: '3'
 
 services:
   api-gateway:
@@ -10,14 +10,12 @@ services:
       - STT_SERVICE_URL=http://stt-service:5002
       - NLP_SERVICE_URL=http://nlp-service:5003
       - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
-      - PDF_SERVICE_URL=http://pdf-service:5005
     restart: always
     depends_on:
       - chatbot-service
       - stt-service
       - nlp-service
       - decision-tree-service
-      - pdf-service
 
   chatbot-service:
     build: ./chatbot_service
@@ -26,12 +24,10 @@ services:
     environment:
       - NLP_SERVICE_URL=http://nlp-service:5003
       - DECISION_TREE_SERVICE_URL=http://decision-tree-service:5004
-      - PDF_SERVICE_URL=http://pdf-service:5005
     restart: always
     depends_on:
       - nlp-service
       - decision-tree-service
-      - pdf-service
 
   stt-service:
     build: ./stt_service
@@ -55,14 +51,6 @@ services:
       - "5004:5004"
     restart: always
 
-  pdf-service:
-    build: ./pdf_service
-    ports:
-      - "5005:5005"
-    volumes:
-      - pdf_reports:/app/reports
-    restart: always
-
   web-client:
     build:
       context: ./web
@@ -74,6 +62,3 @@ services:
     restart: always
     depends_on:
       - api-gateway
-
-volumes:
-  pdf_reports:
