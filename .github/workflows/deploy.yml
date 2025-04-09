@@ -110,6 +110,7 @@ jobs:
             cd /home/debian/persist/projects/ChatbotEligibilite && docker-compose down
           fi && \
           cd /opt/chatbot-eligibilite/ && \
+          /usr/local/bin/docker-compose down && \
           # Utiliser la commande complète pour éviter des problèmes de version
           /usr/local/bin/docker-compose up -d --build"
 
