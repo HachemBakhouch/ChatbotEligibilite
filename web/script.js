@@ -470,18 +470,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', 'bot-message');
 
-        // Utiliser innerHTML pour afficher les liens cliquables
-        messageDiv.innerHTML = text;
+        // Créer un conteneur temporaire pour parser le HTML
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, 'text/html');
 
-        // Ajouter un gestionnaire pour les liens dans le message
-        const links = messageDiv.querySelectorAll('a');
-        links.forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.stopPropagation();  // Empêcher la propagation du clic
-                // Ouvrir le lien dans un nouvel onglet
-                window.open(link.href, '_blank');
-            });
+        // Injecter le contenu HTML
+        messageDiv.innerHTML = '';
+        Array.from(htmlDoc.body.childNodes).forEach(node => {
+            messageDiv.appendChild(node.cloneNode(true));
         });
+
+        // Si aucun nœud enfant n'a été ajouté (ex: texte simple), ajouter directement le texte
+        if (messageDiv.childNodes.length === 0) {
+            messageDiv.innerHTML = text;
+        }
 
         // Speaking Indicator
         const speakingIndicator = document.createElement('span');
