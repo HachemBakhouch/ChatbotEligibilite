@@ -464,8 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add Bot Message
     function addBotMessage(text) {
-        console.log("Texte brut reçu:", text);
-        console.log("Contient des balises <a>:", text.includes("<a"));
+        console.log("Message original:", text);
 
         const messageContainer = document.createElement('div');
         messageContainer.classList.add('message-container', 'bot-container');
@@ -473,43 +472,87 @@ document.addEventListener('DOMContentLoaded', function () {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', 'bot-message');
 
-        // Remplacer l'ancienne URL par la nouvelle
-        let processedText = text.replace(/http:\/\/82\.25\.117\.27/g, 'https://code93.fr');
+        // Méthode radicale: analyser et reconstruire tout lien trouvé
+        let parts = [];
 
-        // Remplacer les apostrophes par des guillemets dans les balises href pour une meilleure compatibilité
-        processedText = processedText.replace(/<a href='([^']+)'/g, '<a href="$1"');
+        // Expression régulière pour détecter les balises <a>
+        const regex = /<a href=['"]([^'"]+)['"][^>]*>(.*?)<\/a>/gi;
+        let lastIndex = 0;
+        let match;
 
-        // Créer un conteneur temporaire pour parser le HTML
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(processedText, 'text/html');
+        // Diviser le texte et extraire les liens
+        while ((match = regex.exec(text)) !== null) {
+            // Ajouter le texte avant le lien
+            if (match.index > lastIndex) {
+                parts.push({
+                    type: 'text',
+                    content: text.substring(lastIndex, match.index)
+                });
+            }
 
-        // Injecter le contenu HTML
-        messageDiv.innerHTML = '';
-        Array.from(htmlDoc.body.childNodes).forEach(node => {
-            messageDiv.appendChild(node.cloneNode(true));
-        });
+            // Ajouter le lien
+            parts.push({
+                type: 'link',
+                url: match[1],
+                content: match[2]
+            });
 
-        // Si aucun nœud enfant n'a été ajouté (ex: texte simple), ajouter directement le texte
-        if (messageDiv.childNodes.length === 0) {
-            messageDiv.innerHTML = processedText;
+            lastIndex = regex.lastIndex;
         }
 
-        // Rendre tous les liens explicitement cliquables
-        messageDiv.querySelectorAll('a').forEach(link => {
-            link.onclick = function (e) {
-                e.stopPropagation();
-                window.open(this.getAttribute('href'), '_blank');
-                return false;
-            };
-            // S'assurer que les styles sont appliqués
-            link.style.color = '#3720BC';
-            link.style.textDecoration = 'underline';
-            link.style.cursor = 'pointer';
-            link.style.pointerEvents = 'auto';
-        });
+        // Ajouter le reste du texte après le dernier lien
+        if (lastIndex < text.length) {
+            parts.push({
+                type: 'text',
+                content: text.substring(lastIndex)
+            });
+        }
 
-        console.log("HTML après insertion:", messageDiv.innerHTML);
-        console.log("Liens trouvés:", messageDiv.querySelectorAll('a').length);
+        // Si aucun lien n'est trouvé, utiliser le texte complet
+        if (parts.length === 0) {
+            parts.push({
+                type: 'text',
+                content: text
+            });
+        }
+
+        console.log("Parts:", parts);
+
+        // Construire le contenu du message avec des éléments DOM distincts
+        parts.forEach(part => {
+            if (part.type === 'text') {
+                const textNode = document.createTextNode(part.content);
+                messageDiv.appendChild(textNode);
+            } else if (part.type === 'link') {
+                // Créer un vrai lien DOM
+                const linkElement = document.createElement('a');
+
+                // Mettre à jour l'URL si nécessaire
+                let url = part.url;
+                if (url.includes('82.25.117.27')) {
+                    url = url.replace('http://82.25.117.27', 'https://code93.fr');
+                }
+
+                linkElement.href = url;
+                linkElement.textContent = part.content;
+                linkElement.target = '_blank';
+                linkElement.rel = 'noopener noreferrer';
+
+                // Styles directs pour garantir l'apparence du lien
+                linkElement.style.color = '#3720BC';
+                linkElement.style.textDecoration = 'underline';
+                linkElement.style.cursor = 'pointer';
+
+                // Ajouter un gestionnaire d'événements explicite
+                linkElement.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(this.href, '_blank');
+                });
+
+                messageDiv.appendChild(linkElement);
+            }
+        });
 
         // Speaking Indicator
         const speakingIndicator = document.createElement('span');
@@ -532,6 +575,8 @@ document.addEventListener('DOMContentLoaded', function () {
         messageContainer.appendChild(messageDiv);
         chatMessages.appendChild(messageContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        console.log("DOM après création:", messageDiv.innerHTML);
 
         return speakingIndicator;
     }
