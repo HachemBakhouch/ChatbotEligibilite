@@ -464,15 +464,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add Bot Message
     function addBotMessage(text) {
+        console.log("Texte brut reçu:", text);
+        console.log("Contient des balises <a>:", text.includes("<a"));
+
         const messageContainer = document.createElement('div');
         messageContainer.classList.add('message-container', 'bot-container');
 
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', 'bot-message');
 
+        // Remplacer l'ancienne URL par la nouvelle
+        let processedText = text.replace(/http:\/\/82\.25\.117\.27/g, 'https://code93.fr');
+
+        // Remplacer les apostrophes par des guillemets dans les balises href pour une meilleure compatibilité
+        processedText = processedText.replace(/<a href='([^']+)'/g, '<a href="$1"');
+
         // Créer un conteneur temporaire pour parser le HTML
         const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(text, 'text/html');
+        const htmlDoc = parser.parseFromString(processedText, 'text/html');
 
         // Injecter le contenu HTML
         messageDiv.innerHTML = '';
@@ -482,8 +491,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Si aucun nœud enfant n'a été ajouté (ex: texte simple), ajouter directement le texte
         if (messageDiv.childNodes.length === 0) {
-            messageDiv.innerHTML = text;
+            messageDiv.innerHTML = processedText;
         }
+
+        // Rendre tous les liens explicitement cliquables
+        messageDiv.querySelectorAll('a').forEach(link => {
+            link.onclick = function (e) {
+                e.stopPropagation();
+                window.open(this.getAttribute('href'), '_blank');
+                return false;
+            };
+            // S'assurer que les styles sont appliqués
+            link.style.color = '#3720BC';
+            link.style.textDecoration = 'underline';
+            link.style.cursor = 'pointer';
+            link.style.pointerEvents = 'auto';
+        });
+
+        console.log("HTML après insertion:", messageDiv.innerHTML);
+        console.log("Liens trouvés:", messageDiv.querySelectorAll('a').length);
 
         // Speaking Indicator
         const speakingIndicator = document.createElement('span');
