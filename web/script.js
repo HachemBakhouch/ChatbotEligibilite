@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const audioUrl = URL.createObjectURL(audioBlob);
 
             // Ajouter un message temporaire en attendant la transcription
-            addUserMessage('<div class="line_emoji">🎤 Message vocal envoyé</div>', null, audioUrl);
+            addUserMessage('🎤 Message vocal envoyé', null, audioUrl);
 
             fetch(`${API_BASE_URL}/process-audio`, {
                 method: 'POST',
@@ -434,13 +434,49 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.transcription) {
-                        // Supprimer les messages temporaires (message et audio)
-                        chatMessages.removeChild(chatMessages.lastElementChild); // Audio container
-                        chatMessages.removeChild(chatMessages.lastElementChild); // Message container
+                    console.log("Réponse complète du service audio:", data); // Debug
 
-                        // Ajouter un nouveau message avec la transcription comme message principal
-                        addUserMessage("Message audio", data.transcription, audioUrl);
+                    // Vérifier explicitement si la transcription existe
+                    if (data.transcription && data.transcription.trim() !== '') {
+                        console.log("Transcription reçue:", data.transcription);
+
+                        // Supprimer le message temporaire
+                        while (chatMessages.lastChild) {
+                            chatMessages.removeChild(chatMessages.lastChild);
+                            break; // Ne supprime que le dernier enfant
+                        }
+
+                        // Ajouter le message utilisateur avec la transcription
+                        const messageContainer = document.createElement('div');
+                        messageContainer.classList.add('message-container', 'user-container');
+
+                        // Message principal
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('message', 'user-message');
+                        messageDiv.textContent = data.transcription;
+                        messageContainer.appendChild(messageDiv);
+
+                        // Ajouter le conteneur de message au chat
+                        chatMessages.appendChild(messageContainer);
+
+                        // Ajouter le lecteur audio dans un conteneur séparé si nécessaire
+                        if (audioUrl) {
+                            const audioContainer = document.createElement('div');
+                            audioContainer.classList.add('audio-message-container');
+                            // Ajout du lecteur audio ici (code du lecteur audio)
+                            // ...
+
+                            // Appliquer le style au conteneur audio
+                            audioContainer.style.marginLeft = 'auto';
+                            audioContainer.style.marginTop = '5px';
+
+                            chatMessages.appendChild(audioContainer);
+                        }
+
+                        // Faire défiler vers le bas
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } else {
+                        console.log("Aucune transcription reçue ou transcription vide");
                     }
 
                     // Slight delay before adding bot message
@@ -452,7 +488,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Activate PDF generation if conversation is finished
                     if (data.is_final) {
                         conversationFinished = true;
-                        generatePdfButton.disabled = false;
+                        if (generatePdfButton) {
+                            generatePdfButton.disabled = false;
+                        }
                     }
                 })
                 .catch(error => {

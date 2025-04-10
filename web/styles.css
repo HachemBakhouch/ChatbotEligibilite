@@ -575,3 +575,10 @@ body {
     text-decoration: none;
     color: #ED450F;
 }
+
+.transcription-text {
+    font-style: italic;
+    background-color: #553DC9;
+    /* Une nuance plus claire que le bleu standard */
+    border-radius: 8px;
+}
