@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         chatMessages.removeChild(chatMessages.lastElementChild); // Message container
 
                         // Ajouter un nouveau message avec la transcription comme message principal
-                        addUserMessage(data.transcription, null, audioUrl);
+                        addUserMessage("Message audio", data.transcription, audioUrl);
                     }
 
                     // Slight delay before adding bot message
