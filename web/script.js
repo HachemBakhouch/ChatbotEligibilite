@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const audioUrl = URL.createObjectURL(audioBlob);
 
             // Ajouter un message temporaire en attendant la transcription
-            addUserMessage('🎤 Message vocal envoyé', null, audioUrl);
+            addUserMessage('<div class="line_emoji">🎤 Message vocal envoyé</div>', null, audioUrl);
 
             fetch(`${API_BASE_URL}/process-audio`, {
                 method: 'POST',
