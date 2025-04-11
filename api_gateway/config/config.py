@@ -16,7 +16,7 @@ class Config:
     DECISION_TREE_SERVICE_URL = os.getenv(
         "DECISION_TREE_SERVICE_URL", "http://decision-tree-service:5004"
     )
-    PDF_SERVICE_URL = os.getenv("PDF_SERVICE_URL", "http://pdf-service:5005")
+    # PDF_SERVICE_URL = os.getenv("PDF_SERVICE_URL", "http://pdf-service:5005")
 
     # Security
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
