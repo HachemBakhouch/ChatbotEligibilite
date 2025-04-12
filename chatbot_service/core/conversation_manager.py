@@ -255,13 +255,13 @@ class ConversationManager:
                     elif age >= 16 and age <= 25.5:
                         return {
                             "next_state": "rsa_verification_young",
-                            "message": "Êtes-vous bénéficiaire du RSA ?",
+                            "message": "Êtes-vous bénéficiaire du RSA (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                             "is_final": False,
                         }
                     elif age > 25.5 and age < 62:
                         return {
                             "next_state": "rsa_verification_adult",
-                            "message": "Êtes-vous bénéficiaire du RSA ?",
+                            "message": "Êtes-vous bénéficiaire du RSA (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                             "is_final": False,
                         }
                     else:  # age >= 62
