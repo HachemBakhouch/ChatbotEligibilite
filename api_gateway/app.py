@@ -7,11 +7,16 @@ app = Flask(__name__)
 from routes.chatbot_routes import chatbot_bp
 
 # Register blueprints
-app.register_blueprint(chatbot_bp, url_prefix='/api/chatbot')
+app.register_blueprint(chatbot_bp, url_prefix="/api/chatbot")
 
-@app.route('/health', methods=['GET'])
+
+@app.route("/health", methods=["GET"])
 def health_check():
     return jsonify({"status": "healthy", "service": "api-gateway"})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(host=Config.HOST, port=Config.PORT, debug=Config.DEBUG)
+
+
+# just a test
