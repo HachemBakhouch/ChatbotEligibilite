@@ -3,6 +3,25 @@ import os
 import re
 from datetime import datetime
 
+# Importer le module city_variants
+try:
+    from data.city_variants import (
+        CITY_VARIANTS,
+        find_city_from_text,
+        normalize_city_name,
+    )
+except ImportError:
+    # Fallback si le chemin d'import direct ne fonctionne pas
+    import sys
+    import os.path
+
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    from data.city_variants import (
+        CITY_VARIANTS,
+        find_city_from_text,
+        normalize_city_name,
+    )
+
 
 class EligibilityEvaluator:
     """Évalue l'éligibilité des utilisateurs basée sur les règles de l'arbre décisionnel"""
@@ -165,7 +184,7 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "not_eligible_schooling",
-                            "message": "Malheureusement, tu n’es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d’accompagnement pour t'aider dans ta recherche d’emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
+                            "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
                             "is_final": True,
                             "eligibility_result": "Non éligible (scolarisation)",
                         },
@@ -614,148 +633,46 @@ class EligibilityEvaluator:
 
             # Vérification ville dans les états concernés
             if "city_verification" in current_state:
-                # Vérifier d'abord les codes postaux directement
+                # Utiliser la fonction find_city_from_text du module city_variants
                 text = nlp_data.get("text", "").lower() if nlp_data else ""
-                code_postal_pattern = r"93\s*[0-9]{3}"
 
-                # Tenter de trouver un code postal dans le texte
-                import re
+                # Essayer d'abord de trouver une ville dans le texte
+                city_name = find_city_from_text(text)
 
-                code_match = re.search(code_postal_pattern, text)
-                if code_match:
-                    code_postal = code_match.group().replace(" ", "")
+                if city_name:
+                    # Ajouter la ville aux données utilisateur
+                    if conversation_id not in self.user_data:
+                        self.user_data[conversation_id] = {}
+                    self.user_data[conversation_id]["city"] = city_name
 
-                    # Mappage des codes postaux
-                    code_postal_mapping = {
-                        "93200": "saint-denis",
-                        "93240": "stains",
-                        "93380": "pierrefitte",
-                        "93400": "saint-ouen",
-                        "93800": "épinay-sur-seine",
-                        "93430": "villetaneuse",
-                        "93450": "île-saint-denis",
-                        "93300": "aubervilliers",
-                        "93120": "la-courneuve",
-                        "93370": "montfermeil",
-                    }
-
-                    if code_postal in code_postal_mapping:
-                        # Ajouter la ville aux données utilisateur
-                        if conversation_id not in self.user_data:
-                            self.user_data[conversation_id] = {}
-                        self.user_data[conversation_id]["city"] = code_postal_mapping[
-                            code_postal
+                    # Traitement spécifique pour jeune non RSA non scolarisé
+                    if current_state == "city_verification_young_no_rsa":
+                        ml_cities = [
+                            "saint-denis",
+                            "pierrefitte",
+                            "saint-ouen",
+                            "épinay-sur-seine",
+                            "villetaneuse",
+                            "île-saint-denis",
                         ]
 
-                        # Traitement spécifique pour jeune non RSA non scolarisé
-                        if current_state == "city_verification_young_no_rsa":
-                            city = code_postal_mapping[code_postal]
-                            ml_cities = [
-                                "saint-denis",
-                                "pierrefitte",
-                                "saint-ouen",
-                                "épinay-sur-seine",
-                                "villetaneuse",
-                                "île-saint-denis",
-                            ]
-
-                            if city in ml_cities:
-                                print(
-                                    f"*** Ville ML détectée via code postal: {city} ***"
-                                )
-                                return {
-                                    "next_state": "eligible_ml",
-                                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
-                                    "is_final": True,
-                                    "eligibility_result": "ML",
-                                }
-                # Si aucun code postal n'a été détecté, vérifier si la ville est manquante
-                elif "city" not in entities:
-                    # Ville non détectée alors qu'on est dans un état qui l'attend
-                    city_keywords = [
-                        "saint-denis",
-                        "st-denis",
-                        "saint denis",
-                        "stains",
-                        "pierrefitte",
-                        "pierrefitte-sur-seine",
-                        "saint-ouen",
-                        "st-ouen",
-                        "saint ouen",
-                        "épinay",
-                        "epinay",
-                        "épinay-sur-seine",
-                        "villetaneuse",
-                        "Ville Tanneuse",
-                        "ville-taneuse",
-                        "ville-tanneuse",
-                        "île-saint-denis",
-                        "ile-saint-denis",
-                        "île saint denis",
-                        "aubervilliers",
-                        "la courneuve",
-                        "la-courneuve",
-                        "montfermeil",
-                    ]
-
-                    # Vérifier si un mot-clé de ville est dans le texte
-                    city_found = False
-                    for city in city_keywords:
-                        if city in text:
-                            city_found = True
-                            # Ajouter la ville normalisée aux données utilisateur
-                            city_mapping = {
-                                "saint denis": "saint-denis",
-                                "st-denis": "saint-denis",
-                                "st denis": "saint-denis",
-                                "pierrefitte-sur-seine": "pierrefitte",
-                                "pierfitte": "pierrefitte",
-                                "pierrefite": "pierrefitte",
-                                "saint ouen": "saint-ouen",
-                                "st-ouen": "saint-ouen",
-                                "st ouen": "saint-ouen",
-                                "epinay": "épinay-sur-seine",
-                                "épinay": "épinay-sur-seine",
-                                "epinay-sur-seine": "épinay-sur-seine",
-                                "ile-saint-denis": "île-saint-denis",
-                                "ile saint denis": "île-saint-denis",
-                                "île saint denis": "île-saint-denis",
-                                "la courneuve": "la-courneuve",
+                        if city_name in ml_cities:
+                            print(
+                                f"*** Ville ML détectée via city_variants: {city_name} ***"
+                            )
+                            return {
+                                "next_state": "eligible_ml",
+                                "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                                "is_final": True,
+                                "eligibility_result": "ML",
                             }
-                            normalized_city = city_mapping.get(city, city)
-                            if conversation_id not in self.user_data:
-                                self.user_data[conversation_id] = {}
-                            self.user_data[conversation_id]["city"] = normalized_city
-
-                            # Traitement spécifique pour jeune non RSA non scolarisé
-                            if current_state == "city_verification_young_no_rsa":
-                                ml_cities = [
-                                    "saint-denis",
-                                    "pierrefitte",
-                                    "saint-ouen",
-                                    "épinay-sur-seine",
-                                    "villetaneuse",
-                                    "île-saint-denis",
-                                ]
-
-                                if normalized_city in ml_cities:
-                                    print(
-                                        f"*** Ville ML détectée par mot-clé: {normalized_city} ***"
-                                    )
-                                    return {
-                                        "next_state": "eligible_ml",
-                                        "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
-                                        "is_final": True,
-                                        "eligibility_result": "ML",
-                                    }
-                            break
-
-                    if not city_found:
-                        return {
-                            "next_state": current_state,  # Rester dans le même état
-                            "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez parmi : Saint-Denis (93200), Stains (93240), Pierrefitte (93380), Saint-Ouen (93400), Épinay-sur-Seine (93800), Villetaneuse (93430), Île-Saint-Denis (93450), Aubervilliers (93300), La Courneuve (93120) ?",
-                            "is_final": False,
-                        }
+                else:
+                    # Ville non détectée alors qu'on est dans un état qui l'attend
+                    return {
+                        "next_state": current_state,  # Rester dans le même état
+                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez parmi : Saint-Denis (93200), Stains (93240), Pierrefitte (93380), Saint-Ouen (93400), Épinay-sur-Seine (93800), Villetaneuse (93430), Île-Saint-Denis (93450), Aubervilliers (93300), La Courneuve (93120) ?",
+                        "is_final": False,
+                    }
 
         # Vérifier si toutes les conditions sont remplies pour ML et appliquer un override
         if conversation_id in self.user_data:
@@ -768,7 +685,7 @@ class EligibilityEvaluator:
                 and user_data.get("rsa") is False
                 and user_data.get("schooling") is False
                 and "city" in user_data
-                and user_data["city"].lower()
+                and normalize_city_name(user_data["city"].lower())
                 in [
                     "saint-denis",
                     "pierrefitte",
@@ -1043,273 +960,27 @@ class EligibilityEvaluator:
             entities = nlp_data.get("entities", {})
             text = nlp_data.get("text", "").lower()
 
-            # Vérifier d'abord si un code postal de Seine-Saint-Denis est présent
-            postcode_pattern = r"93\s*[0-9]{3}"
-            postcode_match = re.search(postcode_pattern, text)
-            if postcode_match:
-                postcode = (
-                    postcode_match.group()
-                    .replace(" ", "")
-                    .replace(".", "")
-                    .replace(",", "")
-                )
+            # Utiliser la fonction find_city_from_text du module city_variants
+            city_name = find_city_from_text(text)
+            if city_name:
+                result["city"] = city_name
+                print(f"Ville extraite via city_variants: {city_name}")
+                return result
 
-                # Mappage des codes postaux
-                code_postal_mapping = {
-                    "93200": "saint-denis",
-                    "93240": "stains",
-                    "93380": "pierrefitte",
-                    "93400": "saint-ouen",
-                    "93800": "épinay-sur-seine",
-                    "93430": "villetaneuse",
-                    "93450": "île-saint-denis",
-                    "93300": "aubervilliers",
-                    "93120": "la-courneuve",
-                    "93370": "montfermeil",
-                }
-
-                if postcode in code_postal_mapping:
-                    result["city"] = code_postal_mapping[postcode]
-                    print(
-                        f"Ville extraite via code postal: {postcode} => {result['city']}"
-                    )
-                    return result
-
-            # Si pas de code postal trouvé, continuer avec la logique existante
+            # Si find_city_from_text ne trouve rien, essayer avec les entités NLP
             if "city" in entities:
                 city = entities["city"]
-                result["city"] = city.lower()
-                print(f"Ville extraite des entités NLP: {city}")
-            else:
-                # Essayer d'extraire du texte brut
-                print(f"Tentative d'extraction de ville du texte: '{text}'")
-
-                cities = [
-                    # Saint-Denis
-                    "saint-denis",
-                    "saint denis",
-                    "st-denis",
-                    "st denis",
-                    "93200",
-                    "93 200",
-                    "93.200",
-                    "932 00",
-                    "93-200",
-                    "quatre-vingt-treize deux cents",
-                    "quatre vingt treize deux cents",
-                    # Pierrefitte-sur-Seine
-                    "pierrefitte",
-                    "pierrefitte-sur-seine",
-                    "pierfitte",
-                    "pierrefite",
-                    "93380",
-                    "93 380",
-                    "93.380",
-                    "933 80",
-                    "93-380",
-                    "quatre-vingt-treize trois cent quatre-vingts",
-                    "quatre vingt treize trois cent quatre vingts",
-                    # Saint-Ouen-sur-Seine
-                    "saint-ouen",
-                    "saint ouen",
-                    "st-ouen",
-                    "st ouen",
-                    "saint-ouen-sur-seine",
-                    "93400",
-                    "93 400",
-                    "93.400",
-                    "934 00",
-                    "93-400",
-                    "quatre-vingt-treize quatre cents",
-                    "quatre vingt treize quatre cents",
-                    # Épinay-sur-Seine
-                    "epinay",
-                    "épinay",
-                    "epinay-sur-seine",
-                    "épinay-sur-seine",
-                    "93800",
-                    "93 800",
-                    "93.800",
-                    "938 00",
-                    "93-800",
-                    "quatre-vingt-treize huit cents",
-                    "quatre vingt treize huit cents",
-                    # Villetaneuse
-                    "Ville Tanneuse",
-                    "villetaneuse",
-                    "93430",
-                    "93 430",
-                    "93.430",
-                    "934 30",
-                    "93-430",
-                    "quatre-vingt-treize quatre cent trente",
-                    "quatre vingt treize quatre cent trente",
-                    # Île-Saint-Denis
-                    "ile-saint-denis",
-                    "île-saint-denis",
-                    "ile saint denis",
-                    "île saint denis",
-                    "93450",
-                    "93 450",
-                    "93.450",
-                    "934 50",
-                    "93-450",
-                    "quatre-vingt-treize quatre cent cinquante",
-                    "quatre vingt treize quatre cent cinquante",
-                    # Aubervilliers
-                    "aubervilliers",
-                    "93300",
-                    "93 300",
-                    "93.300",
-                    "933 00",
-                    "93-300",
-                    "quatre-vingt-treize trois cents",
-                    "quatre vingt treize trois cents",
-                    # La Courneuve
-                    "la courneuve",
-                    "la-courneuve",
-                    "93120",
-                    "93 120",
-                    "93.120",
-                    "931 20",
-                    "93-120",
-                    "quatre-vingt-treize cent vingt",
-                    "quatre vingt treize cent vingt",
-                    # Stains
-                    "stains",
-                    "93240",
-                    "93 240",
-                    "93.240",
-                    "932 40",
-                    "93-240",
-                    "quatre-vingt-treize deux cent quarante",
-                    "quatre vingt treize deux cent quarante",
-                    # Montfermeil
-                    "montfermeil",
-                    "93370",
-                    "93 370",
-                    "93.370",
-                    "933 70",
-                    "93-370",
-                    "quatre-vingt-treize trois cent soixante-dix",
-                    "quatre vingt treize trois cent soixante dix",
-                ]
-
-                # Normalisation des variantes de noms de villes vers leur forme standard
-                city_mapping = {
-                    # Saint-Denis
-                    "saint denis": "saint-denis",
-                    "st-denis": "saint-denis",
-                    "st denis": "saint-denis",
-                    "93200": "saint-denis",
-                    "93 200": "saint-denis",
-                    "93.200": "saint-denis",
-                    "932 00": "saint-denis",
-                    "93-200": "saint-denis",
-                    "quatre-vingt-treize deux cents": "saint-denis",
-                    "quatre vingt treize deux cents": "saint-denis",
-                    # Stains
-                    "93240": "stains",
-                    "93 240": "stains",
-                    "93.240": "stains",
-                    "932 40": "stains",
-                    "93-240": "stains",
-                    "quatre-vingt-treize deux cent quarante": "stains",
-                    "quatre vingt treize deux cent quarante": "stains",
-                    # Pierrefitte
-                    "pierrefitte-sur-seine": "pierrefitte",
-                    "pierfitte": "pierrefitte",
-                    "pierrefite": "pierrefitte",
-                    "93380": "pierrefitte",
-                    "93 380": "pierrefitte",
-                    "93.380": "pierrefitte",
-                    "933 80": "pierrefitte",
-                    "93-380": "pierrefitte",
-                    "quatre-vingt-treize trois cent quatre-vingts": "pierrefitte",
-                    "quatre vingt treize trois cent quatre vingts": "pierrefitte",
-                    # Saint-Ouen
-                    "saint ouen": "saint-ouen",
-                    "st-ouen": "saint-ouen",
-                    "st ouen": "saint-ouen",
-                    "saint-ouen-sur-seine": "saint-ouen",
-                    "93400": "saint-ouen",
-                    "93 400": "saint-ouen",
-                    "93.400": "saint-ouen",
-                    "934 00": "saint-ouen",
-                    "93-400": "saint-ouen",
-                    "quatre-vingt-treize quatre cents": "saint-ouen",
-                    "quatre vingt treize quatre cents": "saint-ouen",
-                    # Épinay-sur-Seine
-                    "epinay": "épinay-sur-seine",
-                    "épinay": "épinay-sur-seine",
-                    "epinay-sur-seine": "épinay-sur-seine",
-                    "93800": "épinay-sur-seine",
-                    "93 800": "épinay-sur-seine",
-                    "93.800": "épinay-sur-seine",
-                    "938 00": "épinay-sur-seine",
-                    "93-800": "épinay-sur-seine",
-                    "quatre-vingt-treize huit cents": "épinay-sur-seine",
-                    "quatre vingt treize huit cents": "épinay-sur-seine",
-                    # Villetaneuse
-                    "Ville Tanneuse": "villetaneuse",
-                    "Ville-tanneuse": "villetaneuse",
-                    "Ville Taneuse": "villetaneuse",
-                    "93430": "villetaneuse",
-                    "93 430": "villetaneuse",
-                    "93.430": "villetaneuse",
-                    "934 30": "villetaneuse",
-                    "93-430": "villetaneuse",
-                    "quatre-vingt-treize quatre cent trente": "villetaneuse",
-                    "quatre vingt treize quatre cent trente": "villetaneuse",
-                    # Île-Saint-Denis
-                    "ile-saint-denis": "île-saint-denis",
-                    "ile saint denis": "île-saint-denis",
-                    "île saint denis": "île-saint-denis",
-                    "93450": "île-saint-denis",
-                    "93 450": "île-saint-denis",
-                    "93.450": "île-saint-denis",
-                    "934 50": "île-saint-denis",
-                    "93-450": "île-saint-denis",
-                    "quatre-vingt-treize quatre cent cinquante": "île-saint-denis",
-                    "quatre vingt treize quatre cent cinquante": "île-saint-denis",
-                    # Aubervilliers
-                    "93300": "aubervilliers",
-                    "93 300": "aubervilliers",
-                    "93.300": "aubervilliers",
-                    "933 00": "aubervilliers",
-                    "93-300": "aubervilliers",
-                    "quatre-vingt-treize trois cents": "aubervilliers",
-                    "quatre vingt treize trois cents": "aubervilliers",
-                    # La Courneuve
-                    "la courneuve": "la-courneuve",
-                    "93120": "la-courneuve",
-                    "93 120": "la-courneuve",
-                    "93.120": "la-courneuve",
-                    "931 20": "la-courneuve",
-                    "93-120": "la-courneuve",
-                    "quatre-vingt-treize cent vingt": "la-courneuve",
-                    "quatre vingt treize cent vingt": "la-courneuve",
-                    # Montfermeil
-                    "93370": "montfermeil",
-                    "93 370": "montfermeil",
-                    "93.370": "montfermeil",
-                    "933 70": "montfermeil",
-                    "93-370": "montfermeil",
-                    "quatre-vingt-treize trois cent soixante-dix": "montfermeil",
-                    "quatre vingt treize trois cent soixante dix": "montfermeil",
-                }
-
-                for city in cities:
-                    if city in text or city.replace("-", " ") in text:
-                        # Normaliser le nom de la ville si nécessaire
-                        normalized_city = city_mapping.get(city, city)
-                        result["city"] = normalized_city
-                        print(
-                            f"Ville extraite du texte: {city} (normalisée en: {normalized_city})"
-                        )
-                        break
+                normalized_city = normalize_city_name(city)
+                if normalized_city:
+                    result["city"] = normalized_city
+                    print(
+                        f"Ville extraite des entités NLP et normalisée: {city} -> {normalized_city}"
+                    )
                 else:
-                    print(f"Aucune ville reconnue dans le texte")
+                    result["city"] = city.lower()
+                    print(f"Ville extraite des entités NLP (non normalisée): {city}")
+            else:
+                print(f"Aucune ville reconnue dans le texte")
 
         return result
 
@@ -1339,144 +1010,43 @@ class EligibilityEvaluator:
                     # Évaluer la liste (en supposant qu'elle est correctement formatée)
                     list_value = eval(list_str, {"__builtins__": {}})
 
-                    # Pour les villes, vérifier avec plus de flexibilité
+                    # Pour les villes, utiliser notre module city_variants
                     if var_name == "city":
-                        # Définir des mappings pour normaliser les noms de villes
-                        city_normalization = {
-                            "saint-denis": [
-                                "saint-denis",
-                                "saint denis",
-                                "st-denis",
-                                "st denis",
-                                "93200",
-                                "93 200",
-                                "93.200",
-                                "932 00",
-                                "93-200",
-                                "quatre-vingt-treize deux cents",
-                                "quatre vingt treize deux cents",
-                            ],
-                            "stains": [
-                                "stains",
-                                "93240",
-                                "93 240",
-                                "93.240",
-                                "932 40",
-                                "93-240",
-                                "quatre-vingt-treize deux cent quarante",
-                                "quatre vingt treize deux cent quarante",
-                            ],
-                            "pierrefitte": [
-                                "pierrefitte",
-                                "pierrefitte-sur-seine",
-                                "pierfitte",
-                                "pierrefite",
-                                "93380",
-                                "93 380",
-                                "93.380",
-                                "933 80",
-                                "93-380",
-                                "quatre-vingt-treize trois cent quatre-vingts",
-                                "quatre vingt treize trois cent quatre vingts",
-                            ],
-                            "saint-ouen": [
-                                "saint-ouen",
-                                "saint ouen",
-                                "st-ouen",
-                                "st ouen",
-                                "saint-ouen-sur-seine",
-                                "93400",
-                                "93 400",
-                                "93.400",
-                                "934 00",
-                                "93-400",
-                                "quatre-vingt-treize quatre cents",
-                                "quatre vingt treize quatre cents",
-                            ],
-                            "épinay-sur-seine": [
-                                "epinay",
-                                "épinay",
-                                "epinay-sur-seine",
-                                "épinay-sur-seine",
-                                "93800",
-                                "93 800",
-                                "93.800",
-                                "938 00",
-                                "93-800",
-                                "quatre-vingt-treize huit cents",
-                                "quatre vingt treize huit cents",
-                            ],
-                            "villetaneuse": [
-                                "villetaneuse",
-                                "93430",
-                                "93 430",
-                                "93.430",
-                                "934 30",
-                                "93-430",
-                                "quatre-vingt-treize quatre cent trente",
-                                "quatre vingt treize quatre cent trente",
-                            ],
-                            "île-saint-denis": [
-                                "ile-saint-denis",
-                                "île-saint-denis",
-                                "ile saint denis",
-                                "île saint denis",
-                                "93450",
-                                "93 450",
-                                "93.450",
-                                "934 50",
-                                "93-450",
-                                "quatre-vingt-treize quatre cent cinquante",
-                                "quatre vingt treize quatre cent cinquante",
-                            ],
-                            "aubervilliers": [
-                                "aubervilliers",
-                                "93300",
-                                "93 300",
-                                "93.300",
-                                "933 00",
-                                "93-300",
-                                "quatre-vingt-treize trois cents",
-                                "quatre vingt treize trois cents",
-                            ],
-                            "la-courneuve": [
-                                "la courneuve",
-                                "la-courneuve",
-                                "93120",
-                                "93 120",
-                                "93.120",
-                                "931 20",
-                                "93-120",
-                                "quatre-vingt-treize cent vingt",
-                                "quatre vingt treize cent vingt",
-                            ],
-                            "montfermeil": [
-                                "montfermeil",
-                                "93370",
-                                "93 370",
-                                "93.370",
-                                "933 70",
-                                "93-370",
-                                "quatre-vingt-treize trois cent soixante-dix",
-                                "quatre vingt treize trois cent soixante dix",
-                            ],
-                        }
+                        # Utiliser la fonction normalize_city_name pour standardiser la ville
+                        normalized_city = normalize_city_name(city_value)
+                        if not normalized_city:
+                            normalized_city = city_value  # Fallback si non reconnu
 
-                        # Vérifier si la ville entrée correspond à l'une des villes normalisées dans la liste
+                        print(
+                            f"Ville normalisée: '{city_value}' -> '{normalized_city}'"
+                        )
+
+                        # Vérifier si la ville normalisée est dans la liste
                         for listed_city in list_value:
                             listed_city_lower = listed_city.lower()
-                            # Vérification directe
-                            if city_value == listed_city_lower:
+
+                            # Vérification directe avec les noms normalisés
+                            if normalized_city == listed_city_lower:
                                 return True
 
-                            # Vérifier les variantes connues
-                            for standard_city, variants in city_normalization.items():
+                            # Vérifier si la ville est une variante d'une ville listée
+                            for standard_city, variants in CITY_VARIANTS.items():
                                 if (
-                                    listed_city_lower in variants
+                                    standard_city == listed_city_lower
                                     and city_value in variants
                                 ):
                                     print(
                                         f"Ville '{city_value}' reconnue comme variante de '{standard_city}' qui est dans la liste"
+                                    )
+                                    return True
+
+                                # Vérifier le cas inverse aussi (ville donnée normalisée est dans la liste)
+                                if (
+                                    standard_city == normalized_city
+                                    and listed_city_lower in variants
+                                ):
+                                    print(
+                                        f"Ville '{listed_city_lower}' reconnue comme variante de '{normalized_city}' qui est la ville entrée"
                                     )
                                     return True
 
