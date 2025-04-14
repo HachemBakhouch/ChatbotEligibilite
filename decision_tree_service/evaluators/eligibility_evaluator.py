@@ -412,13 +412,7 @@ class EligibilityEvaluator:
                         "is_final": True,
                         "eligibility_result": "Non éligible (ville hors périmètre)",
                     }
-                elif "unrecognized_city" in process_result:
-                    ville = process_result.get("unrecognized_city")
-                    return {
-                        "next_state": current_state,  # Rester dans le même état
-                        "message": f"La ville '{ville}' ne semble pas faire partie de mon périmètre d'action. Pourriez-vous préciser une ville du 93 ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
-                        "is_final": False,
-                    }
+
                 elif "city" not in process_result:
                     return {
                         "next_state": current_state,  # Rester dans le même état
@@ -1001,6 +995,40 @@ class EligibilityEvaluator:
                 "limoges",
                 "tours",
                 "amiens",
+                # Villes d'IDF hors 93
+                "courbevoie",
+                "nanterre",
+                "boulogne",
+                "versailles",
+                "cergy",
+                "poissy",
+                "sarcelles",
+                "argenteuil",
+                "asnières",
+                "colombes",
+                "créteil",
+                "vitry",
+                "evry",
+                "meaux",
+                "melun",
+                "fontainebleau",
+                "provins",
+                "mantes",
+                "pontoise",
+                "puteaux",
+                "rueil",
+                "levallois",
+                "neuilly",
+                "issy",
+                "antony",
+                "vincennes",
+                "saint-maur",
+                "fontenay",
+                "champigny",
+                "clamart",
+                "chatou",
+                "saint-germain",
+                "ivry",
             ]
 
             # Vérifier si le texte contient explicitement une ville hors 93
@@ -1020,7 +1048,16 @@ class EligibilityEvaluator:
 
             # Si find_city_from_text ne trouve rien, essayer avec les entités NLP
             if "city" in entities:
-                city = entities["city"]
+                city = entities["city"].lower()
+
+                # Vérifier dans les villes hors 93
+                for ville in villes_hors_93:
+                    if ville in city:
+                        result["out_of_zone"] = True
+                        result["mentioned_city"] = ville
+                        print(f"Ville hors zone détectée via entités: {ville}")
+                        return result
+
                 normalized_city = normalize_city_name(city)
                 if normalized_city:
                     result["city"] = normalized_city
@@ -1029,16 +1066,8 @@ class EligibilityEvaluator:
                     )
                     return result
                 else:
-                    # Vérifier si la ville est hors zone
-                    for ville in villes_hors_93:
-                        if ville in city.lower():
-                            result["out_of_zone"] = True
-                            result["mentioned_city"] = ville
-                            print(f"Ville hors zone détectée via entités: {ville}")
-                            return result
-
-                    # Si la ville n'est pas dans notre liste mais existe
-                    result["unrecognized_city"] = city.lower()
+                    # Si la ville n'est pas reconnue du tout
+                    result["unrecognized_city"] = city
                     print(f"Ville non reconnue détectée: {city}")
                     return result
             else:
