@@ -263,6 +263,7 @@ CITY_VARIANTS = {
         "pierrefittte",
         "pierre-sur-seine",
         "pierrefitte cedex",
+        "PIR-FIT",
         "hotel de ville pierrefitte",
     ],
     "saint-ouen": [
