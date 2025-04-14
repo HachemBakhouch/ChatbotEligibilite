@@ -403,13 +403,28 @@ class EligibilityEvaluator:
                     "message": "Je n'ai pas compris votre âge. Pourriez-vous me dire quel âge vous avez, en chiffres (par exemple 25) ou en lettres (par exemple trente ans) ?",
                     "is_final": False,
                 }
-            elif process_type == "extract_city" and "city" not in process_result:
-                # La ville n'a pas pu être extraite, redemander
-                return {
-                    "next_state": current_state,  # Rester dans le même état
-                    "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
-                    "is_final": False,
-                }
+            elif process_type == "extract_city":
+                if "out_of_zone" in process_result:
+                    ville = process_result.get("mentioned_city", "mentionnée")
+                    return {
+                        "next_state": "not_eligible_city",  # Passer directement à l'état non éligible
+                        "message": f"⚠️ Important : Mon périmètre d'action est limité à la Plaine Commune et au département de la Seine-Saint-Denis (93). La ville de {ville} est en dehors de ma zone d'intervention. Pour ton cas, je te recommande de contacter les services de ta ville ou de ton département.",
+                        "is_final": True,
+                        "eligibility_result": "Non éligible (ville hors périmètre)",
+                    }
+                elif "unrecognized_city" in process_result:
+                    ville = process_result.get("unrecognized_city")
+                    return {
+                        "next_state": current_state,  # Rester dans le même état
+                        "message": f"La ville '{ville}' ne semble pas faire partie de mon périmètre d'action. Pourriez-vous préciser une ville du 93 ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
+                        "is_final": False,
+                    }
+                elif "city" not in process_result:
+                    return {
+                        "next_state": current_state,  # Rester dans le même état
+                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
+                        "is_final": False,
+                    }
 
             # Mettre à jour les données utilisateur avec les résultats du traitement
             if conversation_id not in self.user_data:
@@ -960,6 +975,42 @@ class EligibilityEvaluator:
             entities = nlp_data.get("entities", {})
             text = nlp_data.get("text", "").lower()
 
+            # Liste des villes hors 93 mais reconnaissables
+            villes_hors_93 = [
+                "paris",
+                "marseille",
+                "lyon",
+                "toulouse",
+                "nice",
+                "nantes",
+                "strasbourg",
+                "montpellier",
+                "bordeaux",
+                "lille",
+                "rennes",
+                "reims",
+                "toulon",
+                "grenoble",
+                "dijon",
+                "angers",
+                "nîmes",
+                "villeurbanne",
+                "le havre",
+                "clermont-ferrand",
+                "brest",
+                "limoges",
+                "tours",
+                "amiens",
+            ]
+
+            # Vérifier si le texte contient explicitement une ville hors 93
+            for ville in villes_hors_93:
+                if ville in text.lower():
+                    result["out_of_zone"] = True
+                    result["mentioned_city"] = ville
+                    print(f"Ville hors zone détectée: {ville}")
+                    return result
+
             # Utiliser la fonction find_city_from_text du module city_variants
             city_name = find_city_from_text(text)
             if city_name:
@@ -976,9 +1027,20 @@ class EligibilityEvaluator:
                     print(
                         f"Ville extraite des entités NLP et normalisée: {city} -> {normalized_city}"
                     )
+                    return result
                 else:
-                    result["city"] = city.lower()
-                    print(f"Ville extraite des entités NLP (non normalisée): {city}")
+                    # Vérifier si la ville est hors zone
+                    for ville in villes_hors_93:
+                        if ville in city.lower():
+                            result["out_of_zone"] = True
+                            result["mentioned_city"] = ville
+                            print(f"Ville hors zone détectée via entités: {ville}")
+                            return result
+
+                    # Si la ville n'est pas dans notre liste mais existe
+                    result["unrecognized_city"] = city.lower()
+                    print(f"Ville non reconnue détectée: {city}")
+                    return result
             else:
                 print(f"Aucune ville reconnue dans le texte")
 
