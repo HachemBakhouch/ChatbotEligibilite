@@ -1031,6 +1031,17 @@ class EligibilityEvaluator:
                 "ivry",
             ]
 
+            # Détecter les codes postaux qui ne commencent pas par 93
+            postcode_pattern = r"\b(\d{5})\b"
+            postcode_match = re.search(postcode_pattern, text)
+            if postcode_match:
+                postcode = postcode_match.group(1)
+                if not postcode.startswith("93"):
+                    result["out_of_zone"] = True
+                    result["mentioned_city"] = postcode
+                    print(f"Code postal hors zone détecté: {postcode}")
+                    return result
+
             # Vérifier si le texte contient explicitement une ville hors 93
             for ville in villes_hors_93:
                 if ville in text.lower():
@@ -1072,6 +1083,15 @@ class EligibilityEvaluator:
                     return result
             else:
                 print(f"Aucune ville reconnue dans le texte")
+
+            # Si aucune ville n'est reconnue, considérer comme hors périmètre
+            # C'est une approche optionnelle si vous voulez que toute entrée non reconnue
+            # soit traitée comme hors périmètre
+            if text.strip():  # S'il y a du texte
+                result["out_of_zone"] = True
+                result["mentioned_city"] = text.strip()
+                print(f"Texte non reconnu considéré comme ville hors zone: {text}")
+                return result
 
         return result
 
