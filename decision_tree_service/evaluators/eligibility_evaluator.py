@@ -165,7 +165,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
                             "next": "eligible_ali",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         },
@@ -202,7 +202,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "city in ['saint-denis', 'pierrefitte', 'saint-ouen', 'epinay', 'épinay', 'villetaneuse', 'ile-saint-denis', 'île-saint-denis']",
                             "next": "eligible_ml",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ML",
                         },
@@ -251,7 +251,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "city in ['saint-denis', 'stains', 'pierrefitte']",
                             "next": "eligible_ali",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici</a> pour prendre un rendez-vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "ALI",
                         },
@@ -286,7 +286,7 @@ class EligibilityEvaluator:
                         {
                             "condition": "city in ['aubervilliers', 'epinay-sur-seine', 'épinay-sur-seine', 'ile-saint-denis', 'île-saint-denis', 'la-courneuve', 'la courneuve', 'pierrefitte', 'saint-denis', 'saint-ouen', 'stains', 'villetaneuse']",
                             "next": "eligible_plie",
-                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_plie.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_plie.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                             "is_final": True,
                             "eligibility_result": "PLIE",
                         },
@@ -300,17 +300,17 @@ class EligibilityEvaluator:
                     ],
                 },
                 "eligible_ali": {
-                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ALI",
                 },
                 "eligible_ml": {
-                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ML",
                 },
                 "eligible_plie": {
-                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_plie.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_plie.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "PLIE",
                 },
@@ -671,7 +671,7 @@ class EligibilityEvaluator:
                             )
                             return {
                                 "next_state": "eligible_ml",
-                                "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                                "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                                 "is_final": True,
                                 "eligibility_result": "ML",
                             }
@@ -708,7 +708,7 @@ class EligibilityEvaluator:
                 print("*** CONDITIONS ML DÉTECTÉES - OVERRIDE APPLIQUÉ ***")
                 return {
                     "next_state": "eligible_ml",
-                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici pour prendre un rendez-vous avec un conseiller</a>",
+                    "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
                     "is_final": True,
                     "eligibility_result": "ML",
                 }
