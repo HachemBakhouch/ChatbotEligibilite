@@ -99,12 +99,12 @@ class EligibilityEvaluator:
                         {
                             "condition": "age >= 16 and age <= 25.5",
                             "next": "rsa_verification_young",
-                            "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                            "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         },
                         {
                             "condition": "age > 25.5 and age < 62",
                             "next": "rsa_verification_adult",
-                            "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                            "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         },
                         {
                             "condition": "age >= 62",
@@ -117,7 +117,7 @@ class EligibilityEvaluator:
                 },
                 "rsa_verification": {
                     "next": "schooling_verification",
-                    "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                    "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
@@ -131,7 +131,7 @@ class EligibilityEvaluator:
                 },
                 "rsa_verification_young": {
                     "next": "schooling_verification_young",
-                    "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                    "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_young_rsa",
@@ -217,7 +217,7 @@ class EligibilityEvaluator:
                 },
                 "rsa_verification_adult": {
                     "next": "schooling_verification_adult",
-                    "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                    "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_adult_rsa",
@@ -578,13 +578,13 @@ class EligibilityEvaluator:
                 elif age <= 25.5:
                     return {
                         "next_state": "rsa_verification_young",
-                        "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                        "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         "is_final": False,
                     }
                 elif age < 64:
                     return {
                         "next_state": "rsa_verification_adult",
-                        "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                        "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         "is_final": False,
                     }
                 else:
