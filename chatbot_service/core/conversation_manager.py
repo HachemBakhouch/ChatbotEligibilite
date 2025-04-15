@@ -210,7 +210,15 @@ class ConversationManager:
             print("Using fallback decision tree logic")
 
             # Consentement
+            # Consentement
             if current_state == "initial":
+                return {
+                    "next_state": "pre_consent",  # Changé de "consent" à "pre_consent"
+                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
+                    "is_final": False,
+                }
+            elif current_state == "pre_consent":
+                # Nouvel état intermédiaire qui passe toujours au consentement quelle que soit la réponse
                 return {
                     "next_state": "consent",
                     "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
