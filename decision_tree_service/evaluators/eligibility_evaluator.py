@@ -69,6 +69,10 @@ class EligibilityEvaluator:
                     "next": "consent",
                     "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
                 },
+                "pre_consent": {
+                    "next": "consent",
+                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
+                },
                 "consent": {
                     "next": "age_verification",
                     "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
