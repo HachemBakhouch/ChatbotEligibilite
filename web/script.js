@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // API URL
     const API_BASE_URL = window.location.origin + '/api';
-
+    messageDiv.innerHTML = text;
     // Conversation Initialization
     function initConversation() {
         fetch(`${API_BASE_URL}/conversation`, {
