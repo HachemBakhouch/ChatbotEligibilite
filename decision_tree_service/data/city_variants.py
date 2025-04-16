@@ -58,8 +58,7 @@ CITY_VARIANTS = {
         "snt.denis",
         "sint-dnis",
         "sin deni",
-        "sen deni",
-        "sent-dns",
+        "sen" "sent-dns",
         "saintdénis",
         "st dénis",
         "saint dénis",
@@ -1145,6 +1144,7 @@ CITY_VARIANTS = {
         "auberviliers-93300",  # simplifié + tiret + code postal
         "auvervil",  # b/v substitution + abréviation
         "oberviliers",  # a/o substitution
+        "obervilier",
         "auberviliers-ssd",  # simplifié + département abrégé
         "aubervillier.93",  # omission s + point + département
         "aubervilliers/93",  # nom + slash + département
