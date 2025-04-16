@@ -188,7 +188,7 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "not_eligible_schooling",
-                            "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
+                            "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODE au  0148131320. A bientôt",
                             "is_final": True,
                             "eligibility_result": "Non éligible (scolarisation)",
                         },

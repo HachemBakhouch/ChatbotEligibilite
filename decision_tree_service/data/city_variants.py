@@ -97,6 +97,59 @@ CITY_VARIANTS = {
         "hotel de ville saint denis",
         "93 saint denis",
         "93 st denis",
+        "sainr-denis",  # t/r adjacents sur clavier
+        "saintt denis",  # double lettre par erreur
+        "saibt-denis",  # n/b adjacents
+        "szint-denis",  # a/z adjacents
+        "saint-denid",  # s/d adjacents
+        "saint-denia",  # a/s adjacents
+        "xaint-denis",  # s/x adjacents
+        "saint-demis",  # n/m adjacents
+        "saint-denie",  # s/e adjacents
+        "saint-denus",  # i/u adjacents
+        "saijt-denis",  # n/j adjacents
+        "sainh-denis",  # t/h adjacents
+        "saint-denkis",  # i/k adjacents
+        "sawnt-denis",  # i/w adjacents
+        "saint-deniss",  # double s par erreur
+        "dsaint-denis",  # inversion première lettre
+        "aint-denis",  # oubli première lettre
+        "saint-deni",  # oubli dernière lettre
+        "saint-denisz",  # ajout z en fin
+        "siant-denis",  # inversion ia
+        "sain-tdenis",  # espace mal placé
+        "saintd-enis",  # espace mal placé
+        "saint-dnis",  # omission d'une lettre
+        "saint-deis",  # omission d'une lettre
+        "saint-deniz",  # s/z confusion sonore
+        "saint-deni5",  # s/5 confusion visuelle
+        "sainr deni5",  # plusieurs erreurs combinées
+        "93ooo",  # confusion visuelle 0/2
+        "93 saint denis",  # code postal + ville
+        "sainte-denise",  # féminisation
+        "saint-denise",  # féminisation
+        "saint-denys",  # orthographe ancienne
+        "st-dennys",  # orthographe variante
+        "93200 saintdenis",  # code postal sans espace
+        "st-deniiss",  # duplication lettre
+        "93200sd",  # code postal + initiales
+        "saint-denns",  # lettre manquante
+        "saindennis",  # lettre manquante et duplication
+        "saintednise",  # inversion de lettres
+        "saintdienis",  # inversion de lettres
+        "seintdenise",  # variation orthographique
+        "sein denis",  # confusion avec "seine"
+        "saintden",  # abréviation
+        "sdns",  # acronyme
+        "s-d-93",  # acronyme avec code
+        "93st-d",  # code postal avec initiales
+        "stdennis93",  # forme contractée avec code postal
+        "93denis",  # code postal avec partie du nom
+        "saint-denis9320",  # code postal incomplet
+        "saintd93",  # forme contractée avec partie du code
+        "saint-denis-93200",  # forme avec tirets
+        "st-dni",  # abréviation extrême
+        "s.denis.93",  # ponctuation alternative
     ],
     "stains": [
         # Orthographes standard
@@ -176,6 +229,57 @@ CITY_VARIANTS = {
         "stains cedex",
         "mairie de stains",
         "hotel de ville stains",
+        "dtains",  # s/d adjacents
+        "staind",  # inversion in/nd
+        "staibs",  # n/b adjacents
+        "srains",  # t/r adjacents
+        "staint",  # s/t confusion fin de mot
+        "staims",  # n/m adjacents
+        "staunss",  # i/u adjacents et double s
+        "staihs",  # n/h adjacents
+        "sztains",  # s/z adjacents
+        "stains2",  # ajout chiffre
+        "staons",  # i/o adjacents
+        "sstains",  # double s initial
+        "stains93240",  # nom + code postal complet
+        "93etains",  # début par code département
+        "stain93",  # nom partiel + département
+        "staims 93",  # erreur lettre + département
+        "93ztains",  # code + erreur de frappe
+        "stins93",  # abbreviation + département
+        "staains",  # double a par erreur
+        "tsains",  # inversion premières lettres
+        "tains",  # omission du s initial
+        "stain s",  # espace mal placé
+        "s tains",  # espace mal placé
+        "sta1ns",  # i/1 confusion visuelle
+        "5tains",  # s/5 confusion visuelle
+        "stainz93",  # s/z sonore + département
+        "stainsss",  # triple s par insistance
+        "stainsse",  # ajout e final silencieux
+        "staîns",  # accent circonflexe par erreur
+        "estaîns",  # ajout e initial et accent
+        "stins9324",  # abréviation + code tronqué
+        "sta-ins",  # séparation avec tiret inhabituel
+        "sthains",  # ajout h muet
+        "steins93",  # variante orthographique + département
+        "staines93",  # variante anglicisée + département
+        "stannes",  # variante phonétique
+        "stannz",  # variante phonétique avec z
+        "stayn",  # variante anglicisée
+        "93240stns",  # code postal + abréviation
+        "staiin",  # double i erreur de frappe
+        "estains93",  # e préfixe + département
+        "staingz",  # ajout g et z phonétiques
+        "stns93240",  # abréviation extrême + code postal
+        "stnssd",  # abréviation + ssd (Seine-Saint-Denis)
+        "st6ns",  # substitution chiffre pour phonétique
+        "staynes",  # orthographe fantaisiste
+        "staiines",  # double i erreur
+        "staeens",  # substitution ae pour ai
+        "9324stains",  # code postal incomplet + ville
+        "stain.93",  # avec ponctuation
+        "s.t.n.s",  # acronyme ponctué
     ],
     "pierrefitte": [
         # Orthographes standard
@@ -270,6 +374,58 @@ CITY_VARIANTS = {
         "pierrefitte cedex",
         "pir-fit",
         "hotel de ville pierrefitte",
+        "puerrefitte",  # i/u adjacents
+        "pierrefirte",  # t/r adjacents
+        "pierrefitte93",  # nom + département
+        "piertefitte",  # r/t adjacents
+        "pierrecitte",  # f/c adjacents
+        "pierrefirre",  # t/r adjacents
+        "pierrefitye",  # t/y adjacents
+        "pierrefittr",  # e/r adjacents
+        "piwrrefitte",  # e/w adjacents
+        "pierrefitte9338",  # nom + code postal incomplet
+        "93pierrefitte",  # département + nom
+        "pierdefitte",  # r/d adjacents
+        "puerrefitte93",  # erreur frappe + département
+        "pierrefitte s s",  # sur seine abrégé avec espaces
+        "pierreditte",  # f/d confusion sonore
+        "pierrefitte/s",  # sur abrégé avec slash
+        "pierrefit",  # abréviation sans doublement de t et e final
+        "pierrefitt",  # omission e final
+        "pierrefitte-93380",  # avec code postal et tiret
+        "p-fitte93",  # abréviation + département
+        "pfitte93380",  # abréviation + code postal
+        "pierrefittes",  # ajout s final
+        "pyerrefit",  # i/y substitution
+        "pierrefite93",  # simplification consonnes + département
+        "piierfitte",  # double i erreur frappe
+        "pierrefitre",  # t/r confusion
+        "pierrefihte",  # t/h adjacents
+        "pierrefilte",  # t/l adjacents
+        "pîerrefitte",  # ajout accent circonflexe
+        "pierrefittee",  # double e final
+        "pierefite",  # simplification r et t
+        "pierefitte93380",  # simplification r + code postal
+        "pierreephitte",  # insertion eh
+        "peirrefite",  # inversion ei
+        "piereffitte",  # inversion re/ef
+        "pierrefitte93ssd",  # nom + code + département abrégé
+        "pierrefitesurseine",  # sans espaces ni tirets
+        "pierrefite-sseine",  # abréviation avec tiret
+        "pierrefitt-ss",  # abréviation extrême
+        "pierre-fitte93",  # forme avec tiret + département
+        "pierrefit9338",  # abréviation + code tronqué
+        "pierrefitte 93 380",  # espaces dans code postal
+        "pierrefitte9",  # abréviation extrême
+        "pierre-fite93",  # simplification + tiret + département
+        "pierrefit-93",  # abréviation + tiret + département
+        "pfitte-surseine",  # abréviation début + forme complète fin
+        "pierrephite",  # insertion ph pour f
+        "pierrefit.93",  # abréviation + point + département
+        "p.f.93380",  # initiales ponctuées + code postal
+        "pierrefitteseine",  # sans sur
+        "pfit93",  # abréviation extrême + département
+        "9338pfitte",  # code postal tronqué + abréviation
     ],
     "saint-ouen": [
         # Orthographes standard
@@ -361,11 +517,65 @@ CITY_VARIANTS = {
         "hotel de ville st ouen",
         "saint ouen cedex",
         "st ouen cedex",
+        "sainr-ouen",  # t/r adjacents
+        "saint-iuen",  # o/i adjacents
+        "saint-oien",  # u/i adjacents
+        "saint-ourn",  # e/r adjacents
+        "saijt-ouen",  # n/j adjacents
+        "saintoiem",  # u/i adjacents et n/m adjacents
+        "saint-oueb",  # n/b adjacents
+        "szint-ouen",  # a/z adjacents
+        "saint-ouenn",  # double n erreur
+        "saint-ouej",  # n/j adjacents
+        "saibt-ouen",  # n/b adjacents
+        "saintouen93",  # sans tiret ni espace + département
+        "saitn-ouen",  # inversion tn
+        "saint-oune",  # inversion un/ne
+        "saint-ouin",  # e/i adjacents
+        "saintouen93400",  # sans séparateur + code postal
+        "st-ouen93400",  # abréviation + code postal
+        "saint-ouen 93 400",  # espaces dans code postal
+        "93saintouen",  # département + nom sans séparateur
+        "saint0uen",  # substitution o/0
+        "sain-touen",  # tiret mal placé
+        "saintou-en",  # tiret mal placé
+        "5t-ouen",  # s/5 confusion visuelle
+        "st-0uen",  # o/0 confusion visuelle
+        "saint-ouen9",  # ajout chiffre
+        "saintouen/s",  # sur abrégé avec slash
+        "saint-owen93",  # variante orthographique + département
+        "saintouen s/seine",  # abréviation avec slash
+        "stoen93",  # abréviation extrême + département
+        "sainto93",  # abréviation + début code
+        "st-o93",  # abréviation extrême + département
+        "saint-ouenssd",  # nom + département abréviation
+        "saint-ouen-surseine",  # tout attaché avec tirets
+        "s-ouen-93400",  # abréviation + tiret + code postal
+        "saintouen-93",  # sans espace + tiret + département
+        "snt-ouen93",  # abréviation + département
+        "st-ouenseine",  # abréviation + seine sans séparateur
+        "saintouen seine",  # sans tiret + espace seine
+        "saimt-ouen",  # n/m adjacents
+        "saint-ouem",  # n/m adjacents
+        "sainttouen",  # double t erreur frappe
+        "xaint-ouen",  # s/x adjacents
+        "saint-ouën",  # ajout tréma
+        "s.ouen.93",  # ponctuation alternative + département
+        "st.o.93",  # ponctuation abréviation + département
+        "saint-ouen-sur-s",  # sur-seine abrégé
+        "st-ouen-s-s",  # abréviation extrême
+        "stoen",  # abréviation sans trait d'union
+        "saintouen-s/s",  # abréviation avec slash
+        "st-ouen9340",  # abréviation + code postal tronqué
+        "saint-ouen-93-400",  # tirets partout
     ],
     "épinay-sur-seine": [
         # Orthographes standard
         "epinay",
         "épinay",
+        "épiniay",
+        "ipinay",
+        "ipiniay",
         "epinay-sur-seine",
         "épinay-sur-seine",
         # Codes postaux
@@ -466,6 +676,57 @@ CITY_VARIANTS = {
         "épinay cedex",
         "hotel de ville epinay",
         "hotel de ville épinay",
+        "epunay",  # i/u adjacents
+        "epinzy",  # a/z adjacents
+        "epinqy",  # a/q adjacents
+        "epinsy",  # a/s adjacents
+        "épinzy",  # a/z adjacents avec accent
+        "epitay",  # n/t adjacents
+        "épinat",  # y/t adjacents
+        "epinay93",  # nom + département
+        "épinay93800",  # nom accentué + code postal
+        "ep1nay",  # i/1 confusion visuelle
+        "ép1nay",  # i/1 confusion visuelle avec accent
+        "epimay",  # n/m adjacents
+        "epinaysurseine93",  # tout attaché + département
+        "epinaysurseine",  # tout attaché sans tirets
+        "épinaysurseine",  # tout attaché avec accent
+        "epinay-s-s",  # abréviation extrême
+        "epinay-s/s",  # abréviation avec slash
+        "epinzy-sur-seine",  # a/z adjacents + complet
+        "93800epinay",  # code postal + nom sans espace
+        "938epinay",  # code postal tronqué + nom
+        "epinqy-sur-seine",  # a/q adjacents + complet
+        "3pinay",  # e/3 confusion visuelle
+        "épiney",  # a/e adjacents
+        "épinnay",  # double n erreur
+        "épinai-sur-seine",  # variante orthographique
+        "epinaysaine",  # erreur seine/saine
+        "epinay/seine",  # avec slash
+        "epiné/seine",  # variante orthographique + slash
+        "epinay-seime",  # n/m adjacents
+        "epinay-siene",  # inversion ie
+        "epinaysur-seine",  # attaché partiel
+        "èpinay",  # accent grave erreur
+        "êpinay",  # accent circonflexe erreur
+        "epinau",  # y/u erreur phonétique
+        "épinau",  # y/u erreur phonétique avec accent
+        "epinai93",  # variante orthographique + département
+        "epinays",  # ajout s final
+        "3p1nay",  # e/3 et i/1 confusion visuelle
+        "épinay-s-seine",  # abréviation partielle
+        "epynaie",  # variation orthographique créative
+        "épynaie",  # variation orthographique créative avec accent
+        "epynai-sur-seine",  # variation orthographique + complet
+        "epynay",  # i/y substitution
+        "epinayssd",  # nom + département abrégé
+        "épiné93",  # variante + département
+        "epiné-sur-seine",  # variante orthographique
+        "épinai-s-s",  # variante + abréviation
+        "epinay.93",  # nom + point + département
+        "epinay.sur.seine",  # ponctuation alternative
+        "e.s.s93",  # initiales + département
+        "epinayseine",  # omission du sur
     ],
     "villetaneuse": [
         # Orthographes standard
@@ -548,6 +809,57 @@ CITY_VARIANTS = {
         "vt",
         "mairie de villetaneuse",
         "hotel de ville villetaneuse",
+        "villeraneuse",  # t/r adjacents
+        "villetabeuse",  # n/b adjacents
+        "villetameuse",  # n/m adjacents
+        "villetaneise",  # u/i adjacents
+        "villetaneude",  # s/d adjacents
+        "villetaneuxe",  # s/x adjacents
+        "villetaneuze",  # s/z adjacents
+        "villetaneuss",  # e/s adjacents
+        "villrtaneuse",  # e/r adjacents
+        "villetanzuse",  # e/z adjacents
+        "villetaneyse",  # u/y adjacents
+        "villetane7se",  # u/7 confusion visuelle
+        "v1lletaneuse",  # i/1 confusion visuelle
+        "villetaneu5e",  # s/5 confusion visuelle
+        "villetaneuse93",  # nom + département
+        "villetaneuse93430",  # nom + code postal
+        "93villetaneuse",  # département + nom
+        "villetaneuze93",  # variante + département
+        "villetaneus93",  # omission e final + département
+        "villetaneus-93430",  # omission e final + tiret + code
+        "villetaneusee",  # double e erreur
+        "villetanneusse",  # double n et double s erreur
+        "villletaneuse",  # triple l erreur
+        "viletaneuse",  # omission l
+        "vilettaneuse",  # inversion ll/le
+        "villetaneusessd",  # nom + département abrégé
+        "villetaneusess",  # confusion finale
+        "villetaneus.93",  # omission e final + point + département
+        "villetaneuze.93",  # variante + point + département
+        "villetaneuse-93",  # nom + tiret + département
+        "villetaneuse 93 430",  # espaces dans code postal
+        "villetaneuz",  # omission e final + z phonétique
+        "villetaneusse",  # ajout s phonétique
+        "93430vtaneuse",  # code postal + abréviation
+        "vtnse",  # abréviation extrême
+        "viletan",  # abréviation
+        "villetanssd",  # abréviation + département abrégé
+        "villetaneuse9",  # ajout chiffre
+        "villetameuse93",  # n/m adjacents + département
+        "villetaneusd",  # e/d confusion
+        "v-taneuse93",  # abréviation avec tiret + département
+        "v.t.93430",  # initiales + code postal
+        "v.taneuse",  # abréviation avec point
+        "villetaneuse seine saint denis",  # nom complet département
+        "villetaneuse 93ssd",  # mélange codes
+        "villtaneuse",  # omission e
+        "villtanuse",  # omissions multiples
+        "vil-taneuse",  # abréviation avec tiret
+        "villetaneuze93430",  # variante phonétique + code postal
+        "villetaneuse9343",  # code postal tronqué
+        "villtaneuse93",  # omission e + département
     ],
     "île-saint-denis": [
         # Orthographes standard
@@ -643,6 +955,57 @@ CITY_VARIANTS = {
         "île st denis cedex",
         "hotel de ville ile saint denis",
         "hotel de ville île saint denis",
+        "ile-sainr-denis",  # t/r adjacents
+        "ile-saint-demis",  # n/m adjacents
+        "ile-sainr-demis",  # erreurs multiples t/r et n/m
+        "ile-saibt-denis",  # n/b adjacents
+        "ile-saint-denia",  # s/a adjacents
+        "ile-saint-deniz",  # s/z substitution phonétique
+        "ile-saint-deni5",  # s/5 confusion visuelle
+        "ile-sa1nt-denis",  # i/1 confusion visuelle
+        "ile-saint-deni",  # omission s final
+        "ile-saint-dennnis",  # triple n erreur
+        "ile-sain-denis",  # omission t
+        "ile-ssaint-denis",  # double s initial
+        "ile-saint-ddenis",  # double d erreur
+        "ile-saintdennis",  # sans tiret + double n
+        "ilesaintdenis93",  # tout attaché + département
+        "ilesaintdenis93450",  # tout attaché + code postal
+        "93ilesaintdenis",  # département + tout attaché
+        "isd93450",  # acronyme + code postal
+        "i-s-d93",  # acronyme avec tirets + département
+        "ile.saint.denis",  # ponctuation alternative
+        "ile.st.denis",  # abréviation + ponctuation alternative
+        "ile-st-denis93",  # abréviation + département
+        "ile-stdenis",  # abréviation sans second tiret
+        "ile saintdenis",  # sans second tiret
+        "ile-saintdenis93",  # sans second tiret + département
+        "isldenis",  # contraction + erreur sur isle
+        "îsldenis",  # contraction avec accent
+        "isle denis",  # variante orthographique ancienne
+        "îsle st denis",  # variante ancienne avec accent et abréviation
+        "île de st denis",  # formulation avec de
+        "ile st denis 93",  # abréviation + espace + département
+        "isle de saint denis",  # formulation ancienne avec de
+        "ile s denis",  # abréviation extrême
+        "ile-snt-denis",  # abréviation saint
+        "ile std",  # abréviation extrême
+        "ilsd",  # acronyme alternatif
+        "il-st-ds",  # abréviation extrême avec tirets
+        "iles-d",  # abréviation extrême
+        "ilesd93",  # abréviation + département
+        "ile93",  # abréviation extrême + département
+        "isle93",  # variante ancienne + département
+        "ill st denis",  # double l erreur
+        "ile sd 93450",  # abréviation + espace + code postal
+        "ile-st-d93450",  # abréviation + département + code postal
+        "ilesdssd",  # abréviation + département abrégé
+        "ile-st-denis seine",  # abréviation + seine seul
+        "ile st denis sseine",  # abréviation + seine sans tiret
+        "ile-s-d-93450",  # abréviation extrême avec tirets + code
+        "ilesaintdenis/93",  # tout attaché + slash + département
+        "isle-saint-denis93",  # variante ancienne + département
+        "l'ile-s-d",  # avec apostrophe + abréviation extrême
     ],
     "aubervilliers": [
         # Orthographes standard
@@ -732,6 +1095,57 @@ CITY_VARIANTS = {
         "auber-ville",
         "obrville",
         "hotel de ville aubervilliers",
+        "zubervilliers",  # a/z adjacents
+        "qubervilliers",  # a/q adjacents
+        "aubervilluers",  # i/u adjacents
+        "aubervilkers",  # l/k adjacents
+        "aubervillirrs",  # e/r adjacents
+        "aubervilliees",  # r/e adjacents
+        "aubervillierd",  # s/d adjacents
+        "aubervilliere",  # s/e adjacents
+        "aubervilliees",  # double e erreur
+        "aubeevilliers",  # double e erreur
+        "aubervillliers",  # triple l erreur
+        "aubervvilliers",  # double v erreur
+        "auberviliiers",  # omission l + double i
+        "aubervilliers93",  # nom + département
+        "aubervilliers93300",  # nom + code postal
+        "93aubervilliers",  # département + nom
+        "93300aubervilliers",  # code postal + nom
+        "aubervillierz",  # s/z substitution phonétique
+        "aubervillier5",  # s/5 confusion visuelle
+        "auberv1lliers",  # i/1 confusion visuelle
+        "aubervi11iers",  # l/1 confusion visuelle
+        "aubervillier",  # omission s final
+        "aubervillie",  # omission rs final
+        "aubrvilliers",  # omission e
+        "auberviliés",  # variante phonétique
+        "aubervilers",  # omission li
+        "aub.vill",  # abréviation avec point
+        "a-villiers",  # abréviation avec tiret
+        "aub-vill93",  # abréviation avec tiret + département
+        "aubervilier-93",  # simplifié + tiret + département
+        "aubervilliers-ssd",  # nom + tiret + département abrégé
+        "aubervillers93300",  # simplifié + code postal
+        "aubervillierseine",  # nom + seine sans séparateur
+        "aubervil93",  # abréviation + département
+        "aubersvilliers",  # insertion s erreur
+        "aubervilliers 93 300",  # espaces dans code postal
+        "auberv-93",  # abréviation extrême + département
+        "a.v.93",  # initiales + département
+        "aubervil.93",  # abréviation + point + département
+        "auberville93",  # variante + département
+        "aubervilier93300",  # simplifié + code postal
+        "aubervilliers9",  # ajout chiffre
+        "aubervillierrsz",  # double r + z final
+        "aubervilliersz",  # ajout z final
+        "auberviliers-93300",  # simplifié + tiret + code postal
+        "auvervil",  # b/v substitution + abréviation
+        "oberviliers",  # a/o substitution
+        "auberviliers-ssd",  # simplifié + département abrégé
+        "aubervillier.93",  # omission s + point + département
+        "aubervilliers/93",  # nom + slash + département
+        "auber93",  # abréviation extrême + département
     ],
     "la-courneuve": [
         # Orthographes standard
@@ -811,6 +1225,58 @@ CITY_VARIANTS = {
         "la-courneuve cedex",
         "mairie de la courneuve",
         "hotel de ville la courneuve",
+        "la ciurneuve",  # o/i adjacents
+        "la courbeuve",  # n/b adjacents
+        "la courneyve",  # u/y adjacents
+        "la cournruve",  # e/r adjacents
+        "la courneufe",  # v/f adjacents
+        "la courneuvr",  # e/r adjacents
+        "la courneuced",  # v/c adjacents et e/d adjacents
+        "la courmeuve",  # n/m adjacents
+        "la courneuce",  # v/c adjacents
+        "la courneuvee",  # double e erreur
+        "la courneuvve",  # double v erreur
+        "la ccourneuve",  # double c erreur
+        "la cournneuve",  # double n erreur
+        "la courneuve93",  # nom + département
+        "lacourneuve93",  # sans espace + département
+        "la-courneuve93",  # avec tiret + département
+        "la courneuve93120",  # nom + code postal
+        "lacourneuve93120",  # sans espace + code postal
+        "la-courneuve93120",  # avec tiret + code postal
+        "93lacourneuve",  # département + nom sans espace
+        "93120lacourneuve",  # code postal + nom sans espace
+        "la courneuv",  # omission e final
+        "la corneuve",  # omission u
+        "la courneuvz",  # e/z substitution phonétique
+        "la courneuv3",  # e/3 confusion visuelle
+        "la c0urneuve",  # o/0 confusion visuelle
+        "la courneueve",  # insertion e erreur
+        "la cournuve",  # omission e médian
+        "la courneuve-ssd",  # nom + département abrégé
+        "la courneuve-93",  # nom + tiret + département
+        "lcnve",  # abréviation extrême
+        "la cnve93",  # abréviation + département
+        "la courneuv.93",  # abréviation + point + département
+        "la courneuve 93 120",  # espaces dans code postal
+        "la coroneuv",  # inversion lettres + omission finale
+        "la cournoeuve",  # insertion o erreur
+        "la courneuve9",  # ajout chiffre
+        "l-courneuve",  # abréviation article + tiret
+        "la courneuve-seine",  # nom + seine sans sur
+        "la courneuve seine saint denis",  # nom + département complet
+        "la courneuve ssd",  # nom + département abrégé
+        "la-courne",  # abréviation extrême
+        "la.crn.93",  # abréviation avec ponctuation + département
+        "la-c-93120",  # abréviation extrême + code postal
+        "lacourneuvessd",  # tout attaché + département abrégé
+        "la cournneuv",  # double n + omission finale
+        "la courneuveseine",  # tout attaché avec seine
+        "lacourneuve seine",  # sans espace début + espace seine
+        "la courneuf",  # v/f substitution phonétique
+        "la-courneuf",  # avec tiret + v/f substitution
+        "la courneuve/93",  # nom + slash + département
+        "la-crn93",  # abréviation extrême + département
     ],
 }
 
