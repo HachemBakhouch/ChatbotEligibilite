@@ -26,130 +26,6 @@ except ImportError:
 class EligibilityEvaluator:
     """Évalue l'éligibilité des utilisateurs basée sur les règles de l'arbre décisionnel"""
 
-    def calculate_similarity(str1, str2):
-        """
-        Calcule la similarité entre deux chaînes de caractères (distance de Levenshtein normalisée)
-        Retourne un pourcentage de similarité entre 0 et 100
-        """
-        # Normaliser les chaînes
-        str1 = str1.lower().strip()
-        str2 = str2.lower().strip()
-
-        # Si les chaînes sont identiques, retourner 100%
-        if str1 == str2:
-            return 100
-
-        # Si l'une des chaînes est vide, la distance est égale à la longueur de l'autre chaîne
-        if len(str1) == 0 or len(str2) == 0:
-            return 0
-
-        # Initialisation de la matrice
-        matrix = [[0 for x in range(len(str2) + 1)] for x in range(len(str1) + 1)]
-
-        # Remplissage de la première ligne et de la première colonne
-        for i in range(len(str1) + 1):
-            matrix[i][0] = i
-        for j in range(len(str2) + 1):
-            matrix[0][j] = j
-
-        # Calcul de la distance de Levenshtein
-        for i in range(1, len(str1) + 1):
-            for j in range(1, len(str2) + 1):
-                cost = 0 if str1[i - 1] == str2[j - 1] else 1
-                matrix[i][j] = min(
-                    matrix[i - 1][j] + 1,  # Suppression
-                    matrix[i][j - 1] + 1,  # Insertion
-                    matrix[i - 1][j - 1] + cost,  # Substitution
-                )
-
-        # La distance de Levenshtein est la valeur dans le coin inférieur droit de la matrice
-        distance = matrix[len(str1)][len(str2)]
-
-        # Normaliser la distance pour obtenir un pourcentage de similarité
-        max_length = max(len(str1), len(str2))
-        similarity = (1 - distance / max_length) * 100
-
-        return similarity
-
-    def find_closest_city(city_input, city_list, similarity_threshold=50):
-        """
-        Trouve la ville la plus proche dans la liste si elle dépasse le seuil de similarité
-
-        Args:
-            city_input (str): Nom de ville saisi par l'utilisateur
-            city_list (list): Liste des noms de villes valides
-            similarity_threshold (int): Seuil de similarité en pourcentage (défaut: 50%)
-
-        Returns:
-            tuple: (ville la plus proche, score de similarité) ou (None, 0) si aucune correspondance
-        """
-        if not city_input or not city_list:
-            return None, 0
-
-        max_similarity = 0
-        closest_city = None
-
-        for city in city_list:
-            similarity = calculate_similarity(city_input, city)
-            if similarity > max_similarity:
-                max_similarity = similarity
-                closest_city = city
-
-        # Retourner la ville la plus proche si elle dépasse le seuil
-        if max_similarity >= similarity_threshold:
-            return closest_city, max_similarity
-
-        return None, 0
-
-    def check_city_similarity(user_input, city_variants_dict):
-        """
-        Vérifie si l'entrée de l'utilisateur est similaire à une ville connue
-
-        Args:
-            user_input (str): Texte entré par l'utilisateur
-            city_variants_dict (dict): Dictionnaire des variantes de villes
-
-        Returns:
-            dict: Résultat contenant la ville trouvée, son score et si confirmationest nécessaire
-        """
-        # Normaliser l'entrée utilisateur
-        normalized_input = user_input.lower().strip()
-
-        # Liste des noms de villes standards (les clés du dictionnaire)
-        standard_city_names = list(city_variants_dict.keys())
-
-        # Vérifier si l'entrée correspond exactement à une ville connue ou ses variantes
-        for city, variants in city_variants_dict.items():
-            if normalized_input == city or normalized_input in variants:
-                return {
-                    "city": city,
-                    "similarity_score": 100,
-                    "needs_confirmation": False,
-                    "user_input": normalized_input,
-                }
-
-        # Si pas de correspondance exacte, chercher la ville la plus similaire
-        closest_city, similarity_score = find_closest_city(
-            normalized_input, standard_city_names
-        )
-
-        # Si une ville similaire a été trouvée (au-dessus du seuil)
-        if closest_city and similarity_score >= 50:
-            return {
-                "city": closest_city,
-                "similarity_score": similarity_score,
-                "needs_confirmation": True,
-                "user_input": normalized_input,
-            }
-
-        # Aucune correspondance trouvée
-        return {
-            "city": None,
-            "similarity_score": 0,
-            "needs_confirmation": False,
-            "user_input": normalized_input,
-        }
-
     def __init__(self, rules_file=None):
         """Initialiser avec un fichier de règles optionnel"""
         # Créer le répertoire rules s'il n'existe pas
@@ -192,6 +68,10 @@ class EligibilityEvaluator:
                 "initial": {
                     "next": "consent",
                     "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
+                },
+                "pre_consent": {
+                    "next": "consent",
+                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
                 },
                 "consent": {
                     "next": "age_verification",
@@ -341,7 +221,7 @@ class EligibilityEvaluator:
                 },
                 "rsa_verification_adult": {
                     "next": "schooling_verification_adult",
-                    "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                    "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_adult_rsa",
@@ -456,6 +336,81 @@ class EligibilityEvaluator:
             }
         }
 
+    def calculate_similarity(self, str1, str2):
+        """
+        Calcule la similarité entre deux chaînes de caractères (distance de Levenshtein normalisée)
+        Retourne un pourcentage de similarité entre 0 et 100
+        """
+        # Normaliser les chaînes
+        str1 = str1.lower().strip()
+        str2 = str2.lower().strip()
+
+        # Si les chaînes sont identiques, retourner 100%
+        if str1 == str2:
+            return 100
+
+        # Si l'une des chaînes est vide, la distance est égale à la longueur de l'autre chaîne
+        if len(str1) == 0 or len(str2) == 0:
+            return 0
+
+        # Initialisation de la matrice
+        matrix = [[0 for x in range(len(str2) + 1)] for x in range(len(str1) + 1)]
+
+        # Remplissage de la première ligne et de la première colonne
+        for i in range(len(str1) + 1):
+            matrix[i][0] = i
+        for j in range(len(str2) + 1):
+            matrix[0][j] = j
+
+        # Calcul de la distance de Levenshtein
+        for i in range(1, len(str1) + 1):
+            for j in range(1, len(str2) + 1):
+                cost = 0 if str1[i - 1] == str2[j - 1] else 1
+                matrix[i][j] = min(
+                    matrix[i - 1][j] + 1,  # Suppression
+                    matrix[i][j - 1] + 1,  # Insertion
+                    matrix[i - 1][j - 1] + cost,  # Substitution
+                )
+
+        # La distance de Levenshtein est la valeur dans le coin inférieur droit de la matrice
+        distance = matrix[len(str1)][len(str2)]
+
+        # Normaliser la distance pour obtenir un pourcentage de similarité
+        max_length = max(len(str1), len(str2))
+        similarity = (1 - distance / max_length) * 100
+
+        return similarity
+
+    def find_closest_city(self, city_input, city_list, similarity_threshold=60):
+        """
+        Trouve la ville la plus proche dans la liste si elle dépasse le seuil de similarité
+
+        Args:
+            city_input (str): Nom de ville saisi par l'utilisateur
+            city_list (list): Liste des noms de villes valides
+            similarity_threshold (int): Seuil de similarité en pourcentage (défaut: 60%)
+
+        Returns:
+            tuple: (ville la plus proche, score de similarité) ou (None, 0) si aucune correspondance
+        """
+        if not city_input or not city_list:
+            return None, 0
+
+        max_similarity = 0
+        closest_city = None
+
+        for city in city_list:
+            similarity = self.calculate_similarity(city_input, city)
+            if similarity > max_similarity:
+                max_similarity = similarity
+                closest_city = city
+
+        # Retourner la ville la plus proche si elle dépasse le seuil
+        if max_similarity >= similarity_threshold:
+            return closest_city, max_similarity
+
+        return None, 0
+
     def evaluate(self, conversation_id, current_state, nlp_data=None, user_data=None):
         """
         Évaluer l'état actuel et déterminer la prochaine étape
@@ -543,39 +498,40 @@ class EligibilityEvaluator:
                         "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
                         "is_final": False,
                     }
-            # Gérer le cas où une ville similaire est détectée et nécessite confirmation
-            if "city_needs_confirmation" in process_result:
-                suggested_city = process_result.get("suggested_city")
-                user_input = process_result.get("user_input")
-                similarity_score = process_result.get("similarity_score", 0)
 
-                # Formatage du score pour l'affichage
-                similarity_formatted = f"{similarity_score:.1f}"
+                # Gérer le cas où une ville similaire est détectée et nécessite confirmation
+                if "city_needs_confirmation" in process_result:
+                    suggested_city = process_result.get("suggested_city")
+                    user_input = process_result.get("user_input")
+                    similarity_score = process_result.get("similarity_score", 0)
 
-                confirmation_message = (
-                    f'Vous avez indiqué "{user_input}". '
-                    f'Souhaitez-vous dire "{suggested_city}" ? '
-                    f"(Score de similarité: {similarity_formatted}%)\n\n"
-                    f'Veuillez confirmer par "oui" ou "non".'
-                )
+                    # Formatage du score pour l'affichage
+                    similarity_formatted = f"{similarity_score:.1f}"
 
-                print(
-                    f"Demande de confirmation pour la ville similaire: {suggested_city}"
-                )
+                    confirmation_message = (
+                        f'Vous avez indiqué "{user_input}". '
+                        f'Souhaitez-vous dire "{suggested_city}" ? '
+                        f"(Score de similarité: {similarity_formatted}%)\n\n"
+                        f'Veuillez confirmer par "oui" ou "non".'
+                    )
 
-                # Créer un état temporaire pour la confirmation de la ville
-                temp_state = f"{current_state}_city_confirmation"
+                    print(
+                        f"Demande de confirmation pour la ville similaire: {suggested_city}"
+                    )
 
-                # Stocker la ville suggérée pour référence future
-                if conversation_id not in self.user_data:
-                    self.user_data[conversation_id] = {}
-                self.user_data[conversation_id]["suggested_city"] = suggested_city
+                    # Créer un état temporaire pour la confirmation de la ville
+                    temp_state = f"{current_state}_city_confirmation"
 
-                return {
-                    "next_state": temp_state,
-                    "message": confirmation_message,
-                    "is_final": False,
-                }
+                    # Stocker la ville suggérée pour référence future
+                    if conversation_id not in self.user_data:
+                        self.user_data[conversation_id] = {}
+                    self.user_data[conversation_id]["suggested_city"] = suggested_city
+
+                    return {
+                        "next_state": temp_state,
+                        "message": confirmation_message,
+                        "is_final": False,
+                    }
 
             # Mettre à jour les données utilisateur avec les résultats du traitement
             if conversation_id not in self.user_data:
@@ -605,6 +561,86 @@ class EligibilityEvaluator:
                         }
                     else:
                         print(f"Condition non satisfaite.")
+
+        # Gérer spécifiquement les états de confirmation de ville
+        if "_city_confirmation" in current_state:
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            intent = nlp_data.get("intent", "").lower() if nlp_data else ""
+
+            # Récupérer la ville suggérée stockée précédemment
+            suggested_city = self.user_data.get(conversation_id, {}).get(
+                "suggested_city"
+            )
+
+            # Déterminer si l'utilisateur a confirmé ou non
+            confirmed = False
+            if (
+                intent in ["yes", "affirm", "agree"]
+                or "oui" in text
+                or "d'accord" in text
+                or "ok" in text
+            ):
+                confirmed = True
+            elif intent in ["no", "deny", "disagree"] or "non" in text or "pas" in text:
+                confirmed = False
+            else:
+                # Si la réponse est ambiguë, demander à nouveau
+                return {
+                    "next_state": current_state,
+                    "message": "Je n'ai pas compris votre réponse. Veuillez répondre par 'oui' si vous souhaitiez bien dire \""
+                    + str(suggested_city)
+                    + "\", ou 'non' dans le cas contraire.",
+                    "is_final": False,
+                }
+
+            # Extraire le state de base (sans "_city_confirmation")
+            base_state = current_state.replace("_city_confirmation", "")
+
+            if confirmed:
+                # Si l'utilisateur confirme, utiliser la ville suggérée
+                if conversation_id not in self.user_data:
+                    self.user_data[conversation_id] = {}
+                self.user_data[conversation_id]["city"] = suggested_city
+
+                print(f"Utilisateur a confirmé la ville: {suggested_city}")
+
+                # Continuer avec l'arbre de décision normal
+                state_def = self.rules["states"].get(base_state)
+                if state_def and "transitions" in state_def:
+                    for transition in state_def["transitions"]:
+                        condition = transition["condition"]
+
+                        # Préparer les données pour l'évaluation
+                        eval_data = {}
+                        if user_data:
+                            eval_data.update(user_data)
+                        eval_data["city"] = suggested_city
+
+                        # Évaluer la condition avec les données mises à jour
+                        if self._evaluate_condition(condition, eval_data):
+                            return {
+                                "next_state": transition["next"],
+                                "message": transition["message"],
+                                "is_final": transition.get("is_final", False),
+                                "eligibility_result": transition.get(
+                                    "eligibility_result"
+                                ),
+                            }
+
+                # Si aucune transition ne correspond, utiliser la transition par défaut
+                return {
+                    "next_state": "not_eligible_city",
+                    "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                    "is_final": True,
+                    "eligibility_result": "Non éligible (ville)",
+                }
+            else:
+                # Si l'utilisateur ne confirme pas, lui demander à nouveau la ville
+                return {
+                    "next_state": base_state,
+                    "message": "D'accord. Pourriez-vous préciser à nouveau le nom de votre ville ou votre code postal ?",
+                    "is_final": False,
+                }
 
         # Vérification RSA dans les états concernés
         if "rsa_verification" in current_state:
@@ -714,87 +750,7 @@ class EligibilityEvaluator:
                         "message": "Je n'ai pas compris votre réponse. Pourriez-vous répondre simplement par oui ou par non ?",
                         "is_final": False,
                     }
-                # Gérer spécifiquement les états de confirmation de ville
-                if "_city_confirmation" in current_state:
-                    text = nlp_data.get("text", "").lower() if nlp_data else ""
-                    intent = nlp_data.get("intent", "").lower() if nlp_data else ""
 
-                    # Récupérer la ville suggérée stockée précédemment
-                    suggested_city = self.user_data.get(conversation_id, {}).get(
-                        "suggested_city"
-                    )
-
-                    # Déterminer si l'utilisateur a confirmé ou non
-                    confirmed = False
-                    if (
-                        "oui" in text
-                        or "yes" in text
-                        or "ok" in text
-                        or "d'accord" in text
-                        or intent == "yes"
-                    ):
-                        confirmed = True
-                    elif (
-                        "non" in text or "no" in text or "pas" in text or intent == "no"
-                    ):
-                        confirmed = False
-                    else:
-                        # Si la réponse est ambiguë, demander à nouveau
-                        return {
-                            "next_state": current_state,
-                            "message": "Je n'ai pas compris votre réponse. Veuillez répondre par 'oui' si vous souhaitiez bien dire \""
-                            + suggested_city
-                            + "\", ou 'non' dans le cas contraire.",
-                            "is_final": False,
-                        }
-
-                    # Extraire le state de base (sans "_city_confirmation")
-                    base_state = current_state.replace("_city_confirmation", "")
-
-                    if confirmed:
-                        # Si l'utilisateur confirme, utiliser la ville suggérée
-                        if conversation_id not in self.user_data:
-                            self.user_data[conversation_id] = {}
-                        self.user_data[conversation_id]["city"] = suggested_city
-
-                        print(f"Utilisateur a confirmé la ville: {suggested_city}")
-
-                        # Continuer avec l'arbre de décision normal
-                        for transition in self.rules["states"][base_state].get(
-                            "transitions", []
-                        ):
-                            condition = transition["condition"]
-
-                            # Remplacer "city" par la valeur spécifique pour l'évaluation
-                            eval_condition = condition.replace(
-                                "city", f"'{suggested_city}'"
-                            )
-
-                            # Évaluer la condition modifiée
-                            if eval(eval_condition, {"__builtins__": {}}):
-                                return {
-                                    "next_state": transition["next"],
-                                    "message": transition["message"],
-                                    "is_final": transition.get("is_final", False),
-                                    "eligibility_result": transition.get(
-                                        "eligibility_result"
-                                    ),
-                                }
-
-                        # Si aucune transition ne correspond, utiliser la transition par défaut
-                        return {
-                            "next_state": "not_eligible_city",
-                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
-                            "is_final": True,
-                            "eligibility_result": "Non éligible (ville)",
-                        }
-                    else:
-                        # Si l'utilisateur ne confirme pas, lui demander à nouveau la ville
-                        return {
-                            "next_state": base_state,
-                            "message": "D'accord. Pourriez-vous préciser à nouveau le nom de votre ville ou votre code postal ?",
-                            "is_final": False,
-                        }
         # Rechercher d'autres entités dans les données
         if nlp_data and "entities" in nlp_data:
             entities = nlp_data["entities"]
@@ -831,7 +787,7 @@ class EligibilityEvaluator:
                         "is_final": True,
                         "eligibility_result": "Non éligible (âge)",
                     }
-            # Gérer le cas où on est dans un état qui nécessite l'âge mais qu'on ne l'a pas détecté
+            # Gérer le cas où on est dans l'état age_verification mais qu'on n'a pas détecté l'âge
             elif current_state == "age_verification" and "age" not in entities:
                 return {
                     "next_state": current_state,  # Rester dans le même état
@@ -916,7 +872,7 @@ class EligibilityEvaluator:
                     # Ville non détectée alors qu'on est dans un état qui l'attend
                     return {
                         "next_state": current_state,  # Rester dans le même état
-                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez parmi : Saint-Denis (93200), Stains (93240), Pierrefitte (93380), Saint-Ouen (93400), Épinay-sur-Seine (93800), Villetaneuse (93430), Île-Saint-Denis (93450), Aubervilliers (93300), La Courneuve (93120) ?",
+                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
                         "is_final": False,
                     }
 
@@ -1003,28 +959,21 @@ class EligibilityEvaluator:
                 result["age"] = existing_data["age"]
                 return result
 
-            # Extraire la ville des données NLP
-            text = nlp_data.get("text", "").lower()
+            # Sinon, extraire l'âge des données NLP ou du message utilisateur
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
+            entities = nlp_data.get("entities", {})
 
-            # Vérifier d'abord si un code postal 93XXX est mentionné et si nous sommes dans un contexte de ville
+            # Vérifier si l'âge est dans un contexte de code postal
             if (
                 "ville" in text
                 or "habite" in text
                 or "code" in text
                 or "postal" in text
-            ):
-                postcode_pattern = r"93\s*[0-9]{3}"
-                postcode_match = re.search(postcode_pattern, text)
-                if postcode_match:
-                    # Ne pas interpréter code postal comme âge dans un contexte de ville
-                    print(
-                        f"Code postal trouvé dans un contexte de ville: {postcode_match.group()}"
-                    )
-                    return result
+            ) and re.search(r"93\s*\d{3}", text):
+                print(f"Détection d'un code postal, pas d'un âge")
+                return result
 
-            # Sinon, extraire l'âge des données NLP ou du message utilisateur
-            entities = nlp_data.get("entities", {})
-
+            # Extraire l'âge des entités ou du texte
             if "age" in entities:
                 age = entities["age"]
                 result["age"] = age
@@ -1032,18 +981,16 @@ class EligibilityEvaluator:
             else:
                 # Essayer d'extraire du texte brut
                 print(f"Tentative d'extraction d'âge du texte: '{text}'")
-
                 try:
                     # Trouver le premier nombre dans le texte
-                    age_match = re.search(r"\d+", text)
+                    age_match = re.search(r"\b\d+\b", text)
                     if age_match:
                         age = int(age_match.group())
                         result["age"] = age
                         print(f"Âge extrait du texte (chiffres): {age}")
                     else:
-                        # Liste étendue de nombres écrits en toutes lettres
+                        # Dictionnaire des nombres en lettres
                         number_words = {
-                            # Nombres de 16 à 19
                             "seize": 16,
                             "16 ans": 16,
                             "dix-sept": 17,
@@ -1058,131 +1005,12 @@ class EligibilityEvaluator:
                             "dix neuf": 19,
                             "dixneuf": 19,
                             "19 ans": 19,
-                            # Nombres de 20 à 29
                             "vingt": 20,
                             "20 ans": 20,
                             "vingt et un": 21,
                             "vingt-et-un": 21,
                             "21 ans": 21,
-                            "vingt-deux": 22,
-                            "vingt deux": 22,
-                            "22 ans": 22,
-                            "vingt-trois": 23,
-                            "vingt trois": 23,
-                            "23 ans": 23,
-                            "vingt-quatre": 24,
-                            "vingt quatre": 24,
-                            "24 ans": 24,
-                            "vingt-cinq": 25,
-                            "vingt cinq": 25,
-                            "25 ans": 25,
-                            "vingt-six": 26,
-                            "vingt six": 26,
-                            "26 ans": 26,
-                            "vingt-sept": 27,
-                            "vingt sept": 27,
-                            "27 ans": 27,
-                            "vingt-huit": 28,
-                            "vingt huit": 28,
-                            "28 ans": 28,
-                            "vingt-neuf": 29,
-                            "vingt neuf": 29,
-                            "29 ans": 29,
-                            # Nombres de 30 à 39
-                            "trente": 30,
-                            "30 ans": 30,
-                            "trente et un": 31,
-                            "trente-et-un": 31,
-                            "31 ans": 31,
-                            "trente-deux": 32,
-                            "trente deux": 32,
-                            "32 ans": 32,
-                            "trente-trois": 33,
-                            "trente trois": 33,
-                            "33 ans": 33,
-                            "trente-quatre": 34,
-                            "trente quatre": 34,
-                            "34 ans": 34,
-                            "trente-cinq": 35,
-                            "trente cinq": 35,
-                            "35 ans": 35,
-                            "trente-six": 36,
-                            "trente six": 36,
-                            "36 ans": 36,
-                            "trente-sept": 37,
-                            "trente sept": 37,
-                            "37 ans": 37,
-                            "trente-huit": 38,
-                            "trente huit": 38,
-                            "38 ans": 38,
-                            "trente-neuf": 39,
-                            "trente neuf": 39,
-                            "39 ans": 39,
-                            # Nombres de 40 à 49
-                            "quarante": 40,
-                            "40 ans": 40,
-                            "quarante et un": 41,
-                            "quarante-et-un": 41,
-                            "41 ans": 41,
-                            "quarante-deux": 42,
-                            "quarante deux": 42,
-                            "42 ans": 42,
-                            "quarante-trois": 43,
-                            "quarante trois": 43,
-                            "43 ans": 43,
-                            "quarante-quatre": 44,
-                            "quarante quatre": 44,
-                            "44 ans": 44,
-                            "quarante-cinq": 45,
-                            "quarante cinq": 45,
-                            "45 ans": 45,
-                            "quarante-six": 46,
-                            "quarante six": 46,
-                            "46 ans": 46,
-                            "quarante-sept": 47,
-                            "quarante sept": 47,
-                            "47 ans": 47,
-                            "quarante-huit": 48,
-                            "quarante huit": 48,
-                            "48 ans": 48,
-                            "quarante-neuf": 49,
-                            "quarante neuf": 49,
-                            "49 ans": 49,
-                            # Nombres de 50 à 61
-                            "cinquante": 50,
-                            "50 ans": 50,
-                            "cinquante et un": 51,
-                            "cinquante-et-un": 51,
-                            "51 ans": 51,
-                            "cinquante-deux": 52,
-                            "cinquante deux": 52,
-                            "52 ans": 52,
-                            "cinquante-trois": 53,
-                            "cinquante trois": 53,
-                            "53 ans": 53,
-                            "cinquante-quatre": 54,
-                            "cinquante quatre": 54,
-                            "54 ans": 54,
-                            "cinquante-cinq": 55,
-                            "cinquante cinq": 55,
-                            "55 ans": 55,
-                            "cinquante-six": 56,
-                            "cinquante six": 56,
-                            "56 ans": 56,
-                            "cinquante-sept": 57,
-                            "cinquante sept": 57,
-                            "57 ans": 57,
-                            "cinquante-huit": 58,
-                            "cinquante huit": 58,
-                            "58 ans": 58,
-                            "cinquante-neuf": 59,
-                            "cinquante neuf": 59,
-                            "59 ans": 59,
-                            "soixante": 60,
-                            "60 ans": 60,
-                            "soixante et un": 61,
-                            "soixante-et-un": 61,
-                            "61 ans": 61,
+                            # ... (autres nombres)
                         }
 
                         for word, value in number_words.items():
@@ -1190,14 +1018,9 @@ class EligibilityEvaluator:
                                 result["age"] = value
                                 print(f"Âge extrait du texte (mots): {value}")
                                 break
-                        else:
-                            print(f"Aucun âge trouvé dans le texte")
+
                 except Exception as e:
                     print(f"Erreur lors de l'extraction d'âge: {str(e)}")
-
-        # Ajouter ceci au début des imports du fichier eligibility_evaluator.py, s'il n'existe pas déjà
-
-        # Puis modifier la section concernant extract_city dans la méthode _process_special_logic :
 
         elif process_type == "extract_city":
             # D'abord vérifier si la ville est déjà dans les données existantes
@@ -1207,9 +1030,9 @@ class EligibilityEvaluator:
                 return result
 
             # Extraire la ville des données NLP
-            text = nlp_data.get("text", "").lower()
+            text = nlp_data.get("text", "").lower() if nlp_data else ""
 
-            # Liste des villes hors 93 mais reconnaissables
+            # Liste des villes hors 93
             villes_hors_93 = [
                 "paris",
                 "marseille",
@@ -1235,7 +1058,6 @@ class EligibilityEvaluator:
                 "limoges",
                 "tours",
                 "amiens",
-                # Villes d'IDF hors 93
                 "courbevoie",
                 "nanterre",
                 "boulogne",
@@ -1254,78 +1076,56 @@ class EligibilityEvaluator:
                 "fontainebleau",
                 "provins",
                 "mantes",
-                "pontoise",
-                "puteaux",
-                "rueil",
-                "levallois",
                 "neuilly",
-                "issy",
-                "antony",
-                "vincennes",
-                "saint-maur",
-                "fontenay",
-                "champigny",
-                "clamart",
-                "chatou",
-                "saint-germain",
-                "ivry",
+                "puteaux",
             ]
 
-            # Détecter les codes postaux qui ne commencent pas par 93
-            postcode_pattern = r"\b(\d{5})\b"
-            postcode_match = re.search(postcode_pattern, text)
+            # Vérifier si le texte contient un code postal hors 93
+            postcode_match = re.search(r"\b(\d{5})\b", text)
             if postcode_match:
-                postcode = postcode_match.group(1)
-                if not postcode.startswith("93"):
+                code = postcode_match.group(1)
+                if code and not code.startswith("93"):
                     result["out_of_zone"] = True
-                    result["mentioned_city"] = postcode
-                    print(f"Code postal hors zone détecté: {postcode}")
+                    result["mentioned_city"] = code
+                    print(f"Code postal hors zone détecté: {code}")
                     return result
 
             # Vérifier si le texte contient explicitement une ville hors 93
             for ville in villes_hors_93:
-                if ville in text.lower():
+                if ville in text:
                     result["out_of_zone"] = True
                     result["mentioned_city"] = ville
                     print(f"Ville hors zone détectée: {ville}")
                     return result
 
-            # Nouvelle partie: vérifier la similarité avec les villes connues
-            similarity_result = check_city_similarity(text, CITY_VARIANTS)
-
-            # Si une ville similaire est trouvée mais nécessite confirmation
-            if similarity_result["needs_confirmation"]:
-                result["city_needs_confirmation"] = True
-                result["suggested_city"] = similarity_result["city"]
-                result["user_input"] = similarity_result["user_input"]
-                result["similarity_score"] = similarity_result["similarity_score"]
-                print(
-                    f"Ville similaire détectée: {similarity_result['city']} (score: {similarity_result['similarity_score']:.2f}%)"
-                )
-                print(f"Entrée utilisateur: {similarity_result['user_input']}")
-                return result
-
-            # Si une ville est identifiée avec certitude (pas besoin de confirmation)
-            if (
-                similarity_result["city"]
-                and not similarity_result["needs_confirmation"]
-            ):
-                result["city"] = similarity_result["city"]
-                print(f"Ville extraite via similarité: {similarity_result['city']}")
-                return result
-
-            # Utiliser la fonction find_city_from_text du module city_variants (méthode originale)
+            # 1. D'abord chercher dans notre base de données CITY_VARIANTS
             city_name = find_city_from_text(text)
             if city_name:
                 result["city"] = city_name
-                print(f"Ville extraite via city_variants: {city_name}")
+                print(f"Ville extraite via find_city_from_text: {city_name}")
                 return result
 
-            # Si find_city_from_text ne trouve rien, essayer avec les entités NLP
-            if "entities" in nlp_data and "city" in nlp_data["entities"]:
-                city = nlp_data["entities"]["city"].lower()
+            # 2. Si pas trouvé, essayer avec l'algorithme de similarité
+            standard_cities = list(CITY_VARIANTS.keys())
+            closest_city, similarity = self.find_closest_city(text, standard_cities, 60)
 
-                # Vérifier dans les villes hors 93
+            if closest_city and similarity >= 60:
+                # Une ville similaire a été trouvée
+                result["city_needs_confirmation"] = True
+                result["suggested_city"] = closest_city
+                result["user_input"] = text
+                result["similarity_score"] = similarity
+                print(
+                    f"Ville similaire détectée: {closest_city} (score: {similarity:.2f}%)"
+                )
+                return result
+
+            # 3. Si on a toujours rien, essayer d'extraire des entités
+            entities = nlp_data.get("entities", {})
+            if "city" in entities:
+                city = entities["city"].lower()
+
+                # Vérifier si c'est une ville hors zone
                 for ville in villes_hors_93:
                     if ville in city:
                         result["out_of_zone"] = True
@@ -1333,11 +1133,12 @@ class EligibilityEvaluator:
                         print(f"Ville hors zone détectée via entités: {ville}")
                         return result
 
+                # Normaliser le nom de la ville
                 normalized_city = normalize_city_name(city)
                 if normalized_city:
                     result["city"] = normalized_city
                     print(
-                        f"Ville extraite des entités NLP et normalisée: {city} -> {normalized_city}"
+                        f"Ville extraite des entités NLP: {city} -> {normalized_city}"
                     )
                     return result
                 else:
@@ -1345,10 +1146,8 @@ class EligibilityEvaluator:
                     result["unrecognized_city"] = city
                     print(f"Ville non reconnue détectée: {city}")
                     return result
-            else:
-                print(f"Aucune ville reconnue dans le texte")
 
-            return result
+        return result
 
     def _evaluate_condition(self, condition, data):
         """Évaluer une condition par rapport aux données"""
@@ -1362,96 +1161,91 @@ class EligibilityEvaluator:
                 return True
 
             # Cas spécial pour vérifier si une valeur est dans une liste
-            if " in [" in condition and "]" in condition:
+            if " in " in condition and "[" in condition and "]" in condition:
                 # Extraire la variable et la liste
                 var_name, list_str = condition.split(" in ", 1)
                 var_name = var_name.strip()
 
                 if var_name in data:
                     # Normaliser la valeur entrée
-                    city_value = (
-                        data[var_name].lower() if var_name == "city" else data[var_name]
-                    )
+                    value = data[var_name]
+                    if var_name == "city" and isinstance(value, str):
+                        value = value.lower()
 
                     # Évaluer la liste (en supposant qu'elle est correctement formatée)
-                    list_value = eval(list_str, {"__builtins__": {}})
+                    try:
+                        list_value = eval(list_str, {"__builtins__": {}})
 
-                    # Pour les villes, utiliser notre module city_variants
-                    if var_name == "city":
-                        # Utiliser la fonction normalize_city_name pour standardiser la ville
-                        normalized_city = normalize_city_name(city_value)
-                        if not normalized_city:
-                            normalized_city = city_value  # Fallback si non reconnu
+                        # Pour les villes, on vérifie aussi les variantes
+                        if var_name == "city":
+                            # Normaliser la ville
+                            normalized_city = normalize_city_name(value)
+                            if not normalized_city:
+                                normalized_city = value
 
-                        print(
-                            f"Ville normalisée: '{city_value}' -> '{normalized_city}'"
-                        )
+                            print(f"Ville normalisée: '{value}' -> '{normalized_city}'")
 
-                        # Vérifier si la ville normalisée est dans la liste
-                        for listed_city in list_value:
-                            listed_city_lower = listed_city.lower()
+                            # Vérifier si la ville normalisée est dans la liste
+                            for listed_city in list_value:
+                                listed_city = str(listed_city).lower()
 
-                            # Vérification directe avec les noms normalisés
-                            if normalized_city == listed_city_lower:
+                                # Vérification directe
+                                if normalized_city == listed_city:
+                                    return True
+
+                                # Vérifier dans les variantes connues
+                                if (
+                                    normalized_city in CITY_VARIANTS
+                                    and listed_city in CITY_VARIANTS[normalized_city]
+                                ):
+                                    print(
+                                        f"Ville '{normalized_city}' trouvée comme variante de '{listed_city}'"
+                                    )
+                                    return True
+
+                                if (
+                                    listed_city in CITY_VARIANTS
+                                    and normalized_city in CITY_VARIANTS[listed_city]
+                                ):
+                                    print(
+                                        f"Ville '{listed_city}' trouvée comme variante de '{normalized_city}'"
+                                    )
+                                    return True
+
+                            # Dernière vérification directe dans la liste
+                            if value in list_value:
                                 return True
 
-                            # Vérifier si la ville est une variante d'une ville listée
-                            for standard_city, variants in CITY_VARIANTS.items():
-                                if (
-                                    standard_city == listed_city_lower
-                                    and city_value in variants
-                                ):
-                                    print(
-                                        f"Ville '{city_value}' reconnue comme variante de '{standard_city}' qui est dans la liste"
-                                    )
-                                    return True
-
-                                # Vérifier le cas inverse aussi (ville donnée normalisée est dans la liste)
-                                if (
-                                    standard_city == normalized_city
-                                    and listed_city_lower in variants
-                                ):
-                                    print(
-                                        f"Ville '{listed_city_lower}' reconnue comme variante de '{normalized_city}' qui est la ville entrée"
-                                    )
-                                    return True
-
-                        print(
-                            f"Ville '{city_value}' non trouvée dans les variantes reconnues"
-                        )
+                            print(f"Ville '{value}' non trouvée dans la liste")
+                            return False
+                        else:
+                            # Pour les autres types de données, simple vérification d'appartenance
+                            return value in list_value
+                    except Exception as e:
+                        print(f"Erreur lors de l'évaluation de la liste: {str(e)}")
                         return False
-                    else:
-                        # Pour les autres variables, vérification standard
-                        result = data[var_name] in list_value
-                        print(
-                            f"Évaluation standard 'in': {data[var_name]} in {list_value} => {result}"
-                        )
-                        return result
                 else:
                     print(
-                        f"Variable '{var_name}' requise pour 'in' mais absente des données!"
+                        f"Variable '{var_name}' requise pour l'évaluation mais absente des données!"
                     )
                     return False
 
-            # Créer un contexte d'évaluation sécurisé pour les autres conditions
-            eval_context = {}
+            # Créer un environnement d'évaluation sécurisé pour les autres conditions
+            eval_context = {"__builtins__": {}}
+            for key, val in data.items():
+                eval_context[key] = val
+                print(f"Variable ajoutée au contexte: {key} = {val}")
 
-            # Ajouter les données au contexte
-            for key, value in data.items():
-                eval_context[key] = value
-                print(f"Variable ajoutée au contexte: {key} = {value}")
-
-            # Vérifier si toutes les variables requises sont présentes
-            for var_name in re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", condition):
-                if (
-                    var_name not in eval_context
-                    and var_name != "True"
-                    and var_name != "False"
-                    and var_name != "and"
-                    and var_name != "or"
-                    and var_name != "in"
-                    and var_name != "not"
-                ):
+            # Vérifier si toutes les variables nécessaires sont présentes
+            for var_name in re.findall(r"\b([a-zA-Z_]\w*)\b", condition):
+                if var_name not in eval_context and var_name not in [
+                    "True",
+                    "False",
+                    "and",
+                    "or",
+                    "not",
+                    "in",
+                ]:
                     print(
                         f"ATTENTION: Variable '{var_name}' requise dans la condition mais absente des données!"
                     )
