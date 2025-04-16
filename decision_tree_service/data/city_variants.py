@@ -1145,6 +1145,7 @@ CITY_VARIANTS = {
         "auvervil",  # b/v substitution + abréviation
         "oberviliers",  # a/o substitution
         "obervilier",
+        "aubervier",
         "auberviliers-ssd",  # simplifié + département abrégé
         "aubervillier.93",  # omission s + point + département
         "aubervilliers/93",  # nom + slash + département

@@ -565,24 +565,154 @@ class EligibilityEvaluator:
                 "suggested_city"
             )
 
+            # Extraire l'état de base (sans "_city_confirmation")
+            base_state = current_state.replace("_city_confirmation", "")
+            print(f"État de base extrait: {base_state}")
+
             # Déterminer si l'utilisateur a confirmé ou non
             confirmed = False
             if (
-                intent in ["yes", "affirm", "agree"]
-                or "oui" in text
-                or "d'accord" in text
+                "oui" in text
+                or "yes" in text
                 or "ok" in text
+                or "d'accord" in text
+                or intent == "yes"
             ):
                 confirmed = True
-            elif intent in ["no", "deny", "disagree"] or "non" in text or "pas" in text:
+                print("Confirmation détectée: OUI")
+            elif "non" in text or "no" in text or "pas" in text or intent == "no":
                 confirmed = False
+                print("Confirmation détectée: NON")
             else:
                 # Si la réponse est ambiguë, demander à nouveau
                 return {
                     "next_state": current_state,
                     "message": "Je n'ai pas compris votre réponse. Veuillez répondre par 'oui' si vous souhaitiez bien dire \""
-                    + str(suggested_city)
+                    + (suggested_city or "cette ville")
                     + "\", ou 'non' dans le cas contraire.",
+                    "is_final": False,
+                }
+
+            # Vérifier que l'état de base existe
+            if base_state not in self.rules["states"]:
+                print(f"ERREUR: État de base '{base_state}' non trouvé dans rules")
+                # Revenir à l'état city_verification générique si l'état exact n'existe pas
+                for state_key in self.rules["states"].keys():
+                    if "city_verification" in state_key:
+                        base_state = state_key
+                        print(f"Utilisation de l'état de secours: {base_state}")
+                        break
+
+            if confirmed and suggested_city:
+                # Si l'utilisateur confirme, utiliser la ville suggérée
+                if conversation_id not in self.user_data:
+                    self.user_data[conversation_id] = {}
+                self.user_data[conversation_id]["city"] = suggested_city
+
+                print(f"Utilisateur a confirmé la ville: {suggested_city}")
+
+                # Vérifier dans quelle catégorie d'utilisateur on se trouve pour appliquer les bonnes règles
+                if "young" in base_state and "no_rsa" in base_state:
+                    # Jeune sans RSA
+                    ml_cities = [
+                        "saint-denis",
+                        "pierrefitte",
+                        "saint-ouen",
+                        "épinay-sur-seine",
+                        "villetaneuse",
+                        "île-saint-denis",
+                    ]
+                    if suggested_city in ml_cities:
+                        return {
+                            "next_state": "eligible_ml",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par la mission locale de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ml.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
+                            "is_final": True,
+                            "eligibility_result": "ML",
+                        }
+                    else:
+                        return {
+                            "next_state": "not_eligible_city",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        }
+                elif "young" in base_state and "rsa" in base_state:
+                    # Jeune avec RSA
+                    ali_cities = ["saint-denis", "stains", "pierrefitte"]
+                    if suggested_city in ali_cities:
+                        return {
+                            "next_state": "eligible_ali",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
+                            "is_final": True,
+                            "eligibility_result": "ALI",
+                        }
+                    else:
+                        return {
+                            "next_state": "not_eligible_city",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        }
+                elif "adult" in base_state and "rsa" in base_state:
+                    # Adulte avec RSA
+                    ali_cities = ["saint-denis", "stains", "pierrefitte"]
+                    if suggested_city in ali_cities:
+                        return {
+                            "next_state": "eligible_ali",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
+                            "is_final": True,
+                            "eligibility_result": "ALI",
+                        }
+                    else:
+                        return {
+                            "next_state": "not_eligible_city",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        }
+                elif "adult" in base_state and "no_rsa" in base_state:
+                    # Adulte sans RSA
+                    plie_cities = [
+                        "aubervilliers",
+                        "epinay-sur-seine",
+                        "épinay-sur-seine",
+                        "ile-saint-denis",
+                        "île-saint-denis",
+                        "la-courneuve",
+                        "la courneuve",
+                        "pierrefitte",
+                        "saint-denis",
+                        "saint-ouen",
+                        "stains",
+                        "villetaneuse",
+                    ]
+                    if suggested_city in plie_cities:
+                        return {
+                            "next_state": "eligible_plie",
+                            "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par le PLIE de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_plie.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
+                            "is_final": True,
+                            "eligibility_result": "PLIE",
+                        }
+                    else:
+                        return {
+                            "next_state": "not_eligible_city",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        }
+                else:
+                    # État de base non reconnu, utiliser un fallback
+                    return {
+                        "next_state": "not_eligible_city",
+                        "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                        "is_final": True,
+                        "eligibility_result": "Non éligible (ville - état non reconnu)",
+                    }
+            else:
+                # Si l'utilisateur ne confirme pas, lui demander à nouveau la ville
+                return {
+                    "next_state": base_state,
+                    "message": "D'accord. Pourriez-vous préciser à nouveau le nom de votre ville ou votre code postal ?",
                     "is_final": False,
                 }
 
