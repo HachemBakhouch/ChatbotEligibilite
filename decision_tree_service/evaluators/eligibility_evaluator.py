@@ -492,13 +492,6 @@ class EligibilityEvaluator:
                         "eligibility_result": "Non éligible (ville hors périmètre)",
                     }
 
-                elif "city" not in process_result:
-                    return {
-                        "next_state": current_state,  # Rester dans le même état
-                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
-                        "is_final": False,
-                    }
-
                 # Gérer le cas où une ville similaire est détectée et nécessite confirmation
                 if "city_needs_confirmation" in process_result:
                     suggested_city = process_result.get("suggested_city")
@@ -868,13 +861,6 @@ class EligibilityEvaluator:
                                 "is_final": True,
                                 "eligibility_result": "ML",
                             }
-                else:
-                    # Ville non détectée alors qu'on est dans un état qui l'attend
-                    return {
-                        "next_state": current_state,  # Rester dans le même état
-                        "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
-                        "is_final": False,
-                    }
 
         # Vérifier si toutes les conditions sont remplies pour ML et appliquer un override
         if conversation_id in self.user_data:
