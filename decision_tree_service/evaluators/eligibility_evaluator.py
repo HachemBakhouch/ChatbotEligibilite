@@ -26,6 +26,130 @@ except ImportError:
 class EligibilityEvaluator:
     """Évalue l'éligibilité des utilisateurs basée sur les règles de l'arbre décisionnel"""
 
+    def calculate_similarity(str1, str2):
+        """
+        Calcule la similarité entre deux chaînes de caractères (distance de Levenshtein normalisée)
+        Retourne un pourcentage de similarité entre 0 et 100
+        """
+        # Normaliser les chaînes
+        str1 = str1.lower().strip()
+        str2 = str2.lower().strip()
+
+        # Si les chaînes sont identiques, retourner 100%
+        if str1 == str2:
+            return 100
+
+        # Si l'une des chaînes est vide, la distance est égale à la longueur de l'autre chaîne
+        if len(str1) == 0 or len(str2) == 0:
+            return 0
+
+        # Initialisation de la matrice
+        matrix = [[0 for x in range(len(str2) + 1)] for x in range(len(str1) + 1)]
+
+        # Remplissage de la première ligne et de la première colonne
+        for i in range(len(str1) + 1):
+            matrix[i][0] = i
+        for j in range(len(str2) + 1):
+            matrix[0][j] = j
+
+        # Calcul de la distance de Levenshtein
+        for i in range(1, len(str1) + 1):
+            for j in range(1, len(str2) + 1):
+                cost = 0 if str1[i - 1] == str2[j - 1] else 1
+                matrix[i][j] = min(
+                    matrix[i - 1][j] + 1,  # Suppression
+                    matrix[i][j - 1] + 1,  # Insertion
+                    matrix[i - 1][j - 1] + cost,  # Substitution
+                )
+
+        # La distance de Levenshtein est la valeur dans le coin inférieur droit de la matrice
+        distance = matrix[len(str1)][len(str2)]
+
+        # Normaliser la distance pour obtenir un pourcentage de similarité
+        max_length = max(len(str1), len(str2))
+        similarity = (1 - distance / max_length) * 100
+
+        return similarity
+
+    def find_closest_city(city_input, city_list, similarity_threshold=50):
+        """
+        Trouve la ville la plus proche dans la liste si elle dépasse le seuil de similarité
+
+        Args:
+            city_input (str): Nom de ville saisi par l'utilisateur
+            city_list (list): Liste des noms de villes valides
+            similarity_threshold (int): Seuil de similarité en pourcentage (défaut: 50%)
+
+        Returns:
+            tuple: (ville la plus proche, score de similarité) ou (None, 0) si aucune correspondance
+        """
+        if not city_input or not city_list:
+            return None, 0
+
+        max_similarity = 0
+        closest_city = None
+
+        for city in city_list:
+            similarity = calculate_similarity(city_input, city)
+            if similarity > max_similarity:
+                max_similarity = similarity
+                closest_city = city
+
+        # Retourner la ville la plus proche si elle dépasse le seuil
+        if max_similarity >= similarity_threshold:
+            return closest_city, max_similarity
+
+        return None, 0
+
+    def check_city_similarity(user_input, city_variants_dict):
+        """
+        Vérifie si l'entrée de l'utilisateur est similaire à une ville connue
+
+        Args:
+            user_input (str): Texte entré par l'utilisateur
+            city_variants_dict (dict): Dictionnaire des variantes de villes
+
+        Returns:
+            dict: Résultat contenant la ville trouvée, son score et si confirmationest nécessaire
+        """
+        # Normaliser l'entrée utilisateur
+        normalized_input = user_input.lower().strip()
+
+        # Liste des noms de villes standards (les clés du dictionnaire)
+        standard_city_names = list(city_variants_dict.keys())
+
+        # Vérifier si l'entrée correspond exactement à une ville connue ou ses variantes
+        for city, variants in city_variants_dict.items():
+            if normalized_input == city or normalized_input in variants:
+                return {
+                    "city": city,
+                    "similarity_score": 100,
+                    "needs_confirmation": False,
+                    "user_input": normalized_input,
+                }
+
+        # Si pas de correspondance exacte, chercher la ville la plus similaire
+        closest_city, similarity_score = find_closest_city(
+            normalized_input, standard_city_names
+        )
+
+        # Si une ville similaire a été trouvée (au-dessus du seuil)
+        if closest_city and similarity_score >= 50:
+            return {
+                "city": closest_city,
+                "similarity_score": similarity_score,
+                "needs_confirmation": True,
+                "user_input": normalized_input,
+            }
+
+        # Aucune correspondance trouvée
+        return {
+            "city": None,
+            "similarity_score": 0,
+            "needs_confirmation": False,
+            "user_input": normalized_input,
+        }
+
     def __init__(self, rules_file=None):
         """Initialiser avec un fichier de règles optionnel"""
         # Créer le répertoire rules s'il n'existe pas
@@ -68,10 +192,6 @@ class EligibilityEvaluator:
                 "initial": {
                     "next": "consent",
                     "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
-                },
-                "pre_consent": {
-                    "next": "consent",
-                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
                 },
                 "consent": {
                     "next": "age_verification",
@@ -188,7 +308,7 @@ class EligibilityEvaluator:
                     "responses": {
                         "yes": {
                             "next": "not_eligible_schooling",
-                            "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODE au  0148131320. A bientôt",
+                            "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
                             "is_final": True,
                             "eligibility_result": "Non éligible (scolarisation)",
                         },
@@ -221,7 +341,7 @@ class EligibilityEvaluator:
                 },
                 "rsa_verification_adult": {
                     "next": "schooling_verification_adult",
-                    "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
+                    "message": "Êtes-vous bénéficiaire du <strong>RSA</strong> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                     "responses": {
                         "yes": {
                             "next": "schooling_verification_adult_rsa",
@@ -423,6 +543,39 @@ class EligibilityEvaluator:
                         "message": "Je n'ai pas reconnu cette ville. Pourriez-vous préciser dans quelle ville vous habitez ? Par exemple : Saint-Denis, Stains, Pierrefitte, ou indiquer le code postal comme 93200.",
                         "is_final": False,
                     }
+            # Gérer le cas où une ville similaire est détectée et nécessite confirmation
+            if "city_needs_confirmation" in process_result:
+                suggested_city = process_result.get("suggested_city")
+                user_input = process_result.get("user_input")
+                similarity_score = process_result.get("similarity_score", 0)
+
+                # Formatage du score pour l'affichage
+                similarity_formatted = f"{similarity_score:.1f}"
+
+                confirmation_message = (
+                    f'Vous avez indiqué "{user_input}". '
+                    f'Souhaitez-vous dire "{suggested_city}" ? '
+                    f"(Score de similarité: {similarity_formatted}%)\n\n"
+                    f'Veuillez confirmer par "oui" ou "non".'
+                )
+
+                print(
+                    f"Demande de confirmation pour la ville similaire: {suggested_city}"
+                )
+
+                # Créer un état temporaire pour la confirmation de la ville
+                temp_state = f"{current_state}_city_confirmation"
+
+                # Stocker la ville suggérée pour référence future
+                if conversation_id not in self.user_data:
+                    self.user_data[conversation_id] = {}
+                self.user_data[conversation_id]["suggested_city"] = suggested_city
+
+                return {
+                    "next_state": temp_state,
+                    "message": confirmation_message,
+                    "is_final": False,
+                }
 
             # Mettre à jour les données utilisateur avec les résultats du traitement
             if conversation_id not in self.user_data:
@@ -561,7 +714,87 @@ class EligibilityEvaluator:
                         "message": "Je n'ai pas compris votre réponse. Pourriez-vous répondre simplement par oui ou par non ?",
                         "is_final": False,
                     }
+                # Gérer spécifiquement les états de confirmation de ville
+                if "_city_confirmation" in current_state:
+                    text = nlp_data.get("text", "").lower() if nlp_data else ""
+                    intent = nlp_data.get("intent", "").lower() if nlp_data else ""
 
+                    # Récupérer la ville suggérée stockée précédemment
+                    suggested_city = self.user_data.get(conversation_id, {}).get(
+                        "suggested_city"
+                    )
+
+                    # Déterminer si l'utilisateur a confirmé ou non
+                    confirmed = False
+                    if (
+                        "oui" in text
+                        or "yes" in text
+                        or "ok" in text
+                        or "d'accord" in text
+                        or intent == "yes"
+                    ):
+                        confirmed = True
+                    elif (
+                        "non" in text or "no" in text or "pas" in text or intent == "no"
+                    ):
+                        confirmed = False
+                    else:
+                        # Si la réponse est ambiguë, demander à nouveau
+                        return {
+                            "next_state": current_state,
+                            "message": "Je n'ai pas compris votre réponse. Veuillez répondre par 'oui' si vous souhaitiez bien dire \""
+                            + suggested_city
+                            + "\", ou 'non' dans le cas contraire.",
+                            "is_final": False,
+                        }
+
+                    # Extraire le state de base (sans "_city_confirmation")
+                    base_state = current_state.replace("_city_confirmation", "")
+
+                    if confirmed:
+                        # Si l'utilisateur confirme, utiliser la ville suggérée
+                        if conversation_id not in self.user_data:
+                            self.user_data[conversation_id] = {}
+                        self.user_data[conversation_id]["city"] = suggested_city
+
+                        print(f"Utilisateur a confirmé la ville: {suggested_city}")
+
+                        # Continuer avec l'arbre de décision normal
+                        for transition in self.rules["states"][base_state].get(
+                            "transitions", []
+                        ):
+                            condition = transition["condition"]
+
+                            # Remplacer "city" par la valeur spécifique pour l'évaluation
+                            eval_condition = condition.replace(
+                                "city", f"'{suggested_city}'"
+                            )
+
+                            # Évaluer la condition modifiée
+                            if eval(eval_condition, {"__builtins__": {}}):
+                                return {
+                                    "next_state": transition["next"],
+                                    "message": transition["message"],
+                                    "is_final": transition.get("is_final", False),
+                                    "eligibility_result": transition.get(
+                                        "eligibility_result"
+                                    ),
+                                }
+
+                        # Si aucune transition ne correspond, utiliser la transition par défaut
+                        return {
+                            "next_state": "not_eligible_city",
+                            "message": "Pour ton cas, je te recommande de contacter les services sociaux de ta ville ou de ton département pour explorer les dispositifs d'accompagnement disponibles localement.",
+                            "is_final": True,
+                            "eligibility_result": "Non éligible (ville)",
+                        }
+                    else:
+                        # Si l'utilisateur ne confirme pas, lui demander à nouveau la ville
+                        return {
+                            "next_state": base_state,
+                            "message": "D'accord. Pourriez-vous préciser à nouveau le nom de votre ville ou votre code postal ?",
+                            "is_final": False,
+                        }
         # Rechercher d'autres entités dans les données
         if nlp_data and "entities" in nlp_data:
             entities = nlp_data["entities"]
@@ -962,6 +1195,10 @@ class EligibilityEvaluator:
                 except Exception as e:
                     print(f"Erreur lors de l'extraction d'âge: {str(e)}")
 
+        # Ajouter ceci au début des imports du fichier eligibility_evaluator.py, s'il n'existe pas déjà
+
+        # Puis modifier la section concernant extract_city dans la méthode _process_special_logic :
+
         elif process_type == "extract_city":
             # D'abord vérifier si la ville est déjà dans les données existantes
             if existing_data and "city" in existing_data:
@@ -970,7 +1207,6 @@ class EligibilityEvaluator:
                 return result
 
             # Extraire la ville des données NLP
-            entities = nlp_data.get("entities", {})
             text = nlp_data.get("text", "").lower()
 
             # Liste des villes hors 93 mais reconnaissables
@@ -1054,7 +1290,31 @@ class EligibilityEvaluator:
                     print(f"Ville hors zone détectée: {ville}")
                     return result
 
-            # Utiliser la fonction find_city_from_text du module city_variants
+            # Nouvelle partie: vérifier la similarité avec les villes connues
+            similarity_result = check_city_similarity(text, CITY_VARIANTS)
+
+            # Si une ville similaire est trouvée mais nécessite confirmation
+            if similarity_result["needs_confirmation"]:
+                result["city_needs_confirmation"] = True
+                result["suggested_city"] = similarity_result["city"]
+                result["user_input"] = similarity_result["user_input"]
+                result["similarity_score"] = similarity_result["similarity_score"]
+                print(
+                    f"Ville similaire détectée: {similarity_result['city']} (score: {similarity_result['similarity_score']:.2f}%)"
+                )
+                print(f"Entrée utilisateur: {similarity_result['user_input']}")
+                return result
+
+            # Si une ville est identifiée avec certitude (pas besoin de confirmation)
+            if (
+                similarity_result["city"]
+                and not similarity_result["needs_confirmation"]
+            ):
+                result["city"] = similarity_result["city"]
+                print(f"Ville extraite via similarité: {similarity_result['city']}")
+                return result
+
+            # Utiliser la fonction find_city_from_text du module city_variants (méthode originale)
             city_name = find_city_from_text(text)
             if city_name:
                 result["city"] = city_name
@@ -1062,8 +1322,8 @@ class EligibilityEvaluator:
                 return result
 
             # Si find_city_from_text ne trouve rien, essayer avec les entités NLP
-            if "city" in entities:
-                city = entities["city"].lower()
+            if "entities" in nlp_data and "city" in nlp_data["entities"]:
+                city = nlp_data["entities"]["city"].lower()
 
                 # Vérifier dans les villes hors 93
                 for ville in villes_hors_93:
@@ -1088,16 +1348,7 @@ class EligibilityEvaluator:
             else:
                 print(f"Aucune ville reconnue dans le texte")
 
-            # Si aucune ville n'est reconnue, considérer comme hors périmètre
-            # C'est une approche optionnelle si vous voulez que toute entrée non reconnue
-            # soit traitée comme hors périmètre
-            if text.strip():  # S'il y a du texte
-                result["out_of_zone"] = True
-                result["mentioned_city"] = text.strip()
-                print(f"Texte non reconnu considéré comme ville hors zone: {text}")
-                return result
-
-        return result
+            return result
 
     def _evaluate_condition(self, condition, data):
         """Évaluer une condition par rapport aux données"""
