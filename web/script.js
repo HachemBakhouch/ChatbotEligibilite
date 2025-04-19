@@ -40,7 +40,11 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 conversationId = data.conversation_id;
-                addBotMessage(data.message);
+                // Modifiez cette ligne pour stocker l'indicateur de parole
+                const speakingIndicator = addBotMessage(data.message);
+
+                // Ajoutez cette ligne pour lire le message d'accueil à haute voix
+                speakText(data.message, speakingIndicator);
             })
             .catch(error => {
                 console.error('Error starting conversation:', error);
