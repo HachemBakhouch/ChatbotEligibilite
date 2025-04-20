@@ -13,9 +13,20 @@
           "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊"
         },
         "no": {
-          "next": "end",
+          "next": "consent_denied",
           "message": "Je comprends. Sans ces informations, je ne peux pas déterminer votre éligibilité. N'hésitez pas à revenir si vous changez d'avis.",
-          "is_final": true
+          "is_final": false
+        }
+      }
+    },
+    "consent_denied": {
+      "next": "consent_denied",
+      "message": "Je comprends. Si vous changez d'avis, il vous suffit de me dire 'oui' et nous pourrons continuer l'évaluation.",
+      "is_final": false,
+      "responses": {
+        "yes": {
+          "next": "age_verification",
+          "message": "Parfait ! Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊"
         }
       }
     },
@@ -105,7 +116,7 @@
       "responses": {
         "yes": {
           "next": "not_eligible_schooling",
-          "message": "Malheureusement, tu n’es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d’accompagnement pour t'aider dans ta recherche d’emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
+          "message": "Malheureusement, tu n'es pas éligible à un accompagnement pour le moment, tant que tu es encore scolarisé. 🎓 Cependant, dès que tu auras terminé tes études, tu pourras bénéficier de nos services d'accompagnement pour t'aider dans ta recherche d'emploi et ton insertion professionnelle. En attendant, si tu as des questions ou besoin de conseils, tu peux appeler CODEE au  0148131320. A bientôt",
           "is_final": true,
           "eligibility_result": "Non éligible (scolarisation)"
         },
@@ -221,7 +232,7 @@
       ]
     },
     "eligible_ali": {
-      "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici</a> pour prendre un rendez-vous avec un conseiller",
+      "message": "🎉 Bonne nouvelle ! 🎉 Tu es éligible à un accompagnement personnalisé par l'agence locale d'insertion de ta ville ! 🙌 Cela peut t'aider à trouver des opportunités professionnelles, recevoir des conseils et bien plus. <a href='https://code93.fr/rendezvous/formulaire_ali.php' target='_blank'>Cliquez ici </a> pour prendre un rendez-vous avec un conseiller",
       "is_final": true,
       "eligibility_result": "ALI"
     },
@@ -249,6 +260,11 @@
       "message": "Je suis désolé, mais vous n'êtes pas éligible aux programmes avec votre statut de scolarisation actuel.",
       "is_final": true,
       "eligibility_result": "Non éligible (scolarisation)"
+    },
+    "error": {
+      "message": "Une erreur s'est produite. Veuillez dire 'oui' pour continuer avec l'évaluation d'éligibilité.",
+      "next": "consent",
+      "is_final": false
     }
   }
 }

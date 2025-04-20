@@ -369,14 +369,63 @@ class EligibilityEvaluator:
                 self.user_data[conversation_id] = {}
             self.user_data[conversation_id].update(user_data)
 
+        # NOUVELLE LOGIQUE: Vérifier si l'utilisateur a changé d'avis après avoir refusé
+        if current_state == "end" and nlp_data:
+            text = nlp_data.get("text", "").lower()
+            intent = nlp_data.get("intent", "").lower()
+
+            # Détection de changement d'avis
+            change_of_mind_keywords = [
+                "oui",
+                "d'accord",
+                "je veux bien",
+                "ok",
+                "accepte",
+                "yes",
+            ]
+            if any(
+                keyword in text for keyword in change_of_mind_keywords
+            ) or intent in ["yes", "accept", "agree"]:
+                print("*** Détection de changement d'avis après refus initial ***")
+
+                # Réinitialiser l'état au consentement
+                return {
+                    "next_state": "age_verification",
+                    "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
+                    "is_final": False,
+                }
+
         # Obtenir la définition de l'état actuel
         state_def = self.rules["states"].get(current_state)
 
         if not state_def:
             print(f"État non reconnu dans l'arbre de décision: {current_state}")
+
+            # NOUVELLE LOGIQUE: Si l'état n'est pas reconnu, vérifier si l'utilisateur tente de continuer
+            if nlp_data:
+                text = nlp_data.get("text", "").lower()
+                # Détection de changement d'avis ou de tentative de continuer
+                continue_keywords = [
+                    "oui",
+                    "continuer",
+                    "commencer",
+                    "accepte",
+                    "d'accord",
+                    "ok",
+                ]
+                if any(keyword in text for keyword in continue_keywords):
+                    print(
+                        "*** Tentative de continuer détectée, redirection vers age_verification ***"
+                    )
+                    return {
+                        "next_state": "age_verification",
+                        "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
+                        "is_final": False,
+                    }
+
             return {
                 "next_state": "error",
-                "message": "État non reconnu dans l'arbre de décision.",
+                "message": "État non reconnu dans l'arbre de décision. Dites 'Oui' pour commencer l'évaluation d'éligibilité.",
                 "is_final": False,
             }
 

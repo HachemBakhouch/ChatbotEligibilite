@@ -41,6 +41,24 @@ class ConversationManager:
             {"role": "user", "content": text, "timestamp": datetime.now().isoformat()}
         )
 
+        # NOUVELLE LOGIQUE: Détecter si l'utilisateur change d'avis après un refus
+        if conversation["current_state"] == "end":
+            text_lower = text.lower()
+            # Mots-clés pour détecter un changement d'avis
+            change_of_mind_keywords = [
+                "oui",
+                "d'accord",
+                "je veux bien",
+                "ok",
+                "accepte",
+                "yes",
+            ]
+
+            if any(keyword in text_lower for keyword in change_of_mind_keywords):
+                print("*** Utilisateur a changé d'avis après un refus initial ***")
+                # Réinitialiser l'état pour revenir à l'évaluation d'âge
+                conversation["current_state"] = "age_verification"
+
         # Process with NLP service
         nlp_response = self._process_with_nlp(text)
         print(f"NLP Response: {json.dumps(nlp_response)}")

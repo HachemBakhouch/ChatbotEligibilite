@@ -2196,6 +2196,7 @@ CITY_VARIANTS = {
         "tauber",
         "oberland",
         "obertown",
+        "au bervier",
     ],
     "la-courneuve": [
         # Orthographes standard
