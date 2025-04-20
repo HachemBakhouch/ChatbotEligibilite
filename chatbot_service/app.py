@@ -1,5 +1,7 @@
 ﻿from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
+from datetime import datetime  # Ajoutez cette ligne
 from core.conversation_manager import ConversationManager
 from config.config import Config
 
@@ -91,6 +93,11 @@ def process_audio():
         if not conversation_id or not audio_data:
             return jsonify({"error": "Missing conversation_id or audio data"}), 400
 
+        # Vérifier d'abord l'état de la conversation
+        conversation = conversation_manager.get_conversation(conversation_id)
+        if not conversation:
+            return jsonify({"error": "Conversation not found"}), 404
+
         # URL du service STT codée en dur pour contourner le problème de Config
         stt_service_url = Config.STT_SERVICE_URL
         print(f"Using hardcoded STT Service URL: {stt_service_url}")
@@ -114,10 +121,78 @@ def process_audio():
             # Utiliser un texte par défaut en cas d'erreur
             text = "Message vocal reçu mais erreur lors de la transcription."
 
-        # Process the transcribed text
-        response = conversation_manager.process_message(conversation_id, text)
+        # Si l'état est "consent" et la réponse est "non", traiter comme un refus de consentement
+        if conversation["current_state"] == "consent":
+            text_lower = text.lower()
+            if (
+                "non" in text_lower
+                or "pas" in text_lower
+                or "refuse" in text_lower
+                or "n'accepte" in text_lower
+            ):
+                # Forcer le traitement du refus de consentement
+                response = {
+                    "message": "Je comprends. Sans ces informations, je ne peux pas déterminer votre éligibilité. N'hésitez pas à revenir si vous changez d'avis.",
+                    "conversation_id": conversation_id,
+                    "is_final": False,
+                    "transcription": text,
+                }
 
-        # Include transcription in response
+                # Mettre à jour l'état de la conversation
+                conversation["current_state"] = "end"
+                conversation["messages"].append(
+                    {
+                        "role": "user",
+                        "content": text,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+                conversation["messages"].append(
+                    {
+                        "role": "bot",
+                        "content": response["message"],
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+
+                return jsonify(response), 200
+
+        # Si nous sommes dans l'état "end" (refus précédent) et l'utilisateur change d'avis
+        elif conversation["current_state"] == "end":
+            text_lower = text.lower()
+            positive_words = ["oui", "d'accord", "accepte", "ok", "je veux bien", "yes"]
+            if any(word in text_lower for word in positive_words):
+                # Forcer le passage à l'étape de l'âge
+                age_message = "Parfait ! Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊"
+                response = {
+                    "message": age_message,
+                    "conversation_id": conversation_id,
+                    "is_final": False,
+                    "transcription": text,
+                }
+
+                # Mettre à jour l'état de la conversation
+                conversation["current_state"] = "age_verification"
+                conversation["messages"].append(
+                    {
+                        "role": "user",
+                        "content": text,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+                conversation["messages"].append(
+                    {
+                        "role": "bot",
+                        "content": age_message,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
+
+                return jsonify(response), 200
+
+        # Traitement normal pour les autres cas
+        # Nous n'ajoutons pas le message utilisateur ici car process_message va le faire
+        response = conversation_manager.process_message(conversation_id, text)
         response["transcription"] = text
 
         return jsonify(response), 200
