@@ -106,14 +106,14 @@ class EligibilityEvaluator:
                             "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         },
                         {
-                            "condition": "age > 25.5 and age < 62",
+                            "condition": "age > 25.5 and age < 64",
                             "next": "rsa_verification_adult",
                             "message": "Êtes-vous bénéficiaire du <b>RSA</b> (Revenu de Solidarité Active) ? C'est une aide sociale qui garantit un revenu minimum aux personnes sans ressources ou à faibles revenus, versée par la CAF ou la MSA.",
                         },
                         {
-                            "condition": "age >= 62",
+                            "condition": "age >= 64",
                             "next": "not_eligible_age",
-                            "message": "Je suis désolé, mais vous devez avoir moins de 62 ans pour être éligible aux programmes.",
+                            "message": "Je suis désolé, mais vous devez avoir moins de 64 ans pour être éligible aux programmes.",
                             "is_final": True,
                             "eligibility_result": "Non éligible (âge)",
                         },
