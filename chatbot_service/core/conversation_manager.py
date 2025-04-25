@@ -352,9 +352,9 @@ class ConversationManager:
                     }
                 else:
                     return {
-                        "next_state": "age_verification",
-                        "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
-                        "is_final": False,
+                        "next_state": "end",
+                        "message": "Je comprends. Sans ces informations, je ne peux pas déterminer votre éligibilité. N'hésitez pas à revenir si vous changez d'avis.",
+                        "is_final": True,
                     }
 
             # Vérification de l'âge

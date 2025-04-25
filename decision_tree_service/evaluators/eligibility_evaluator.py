@@ -66,7 +66,7 @@ class EligibilityEvaluator:
         return {
             "states": {
                 "initial": {
-                    "next": "consent",
+                    "next": "pre_consent",  # Changé de "consent" à "pre_consent"
                     "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
                 },
                 "pre_consent": {
@@ -88,6 +88,7 @@ class EligibilityEvaluator:
                         },
                     },
                 },
+                # ... le reste des états reste identique
                 "age_verification": {
                     "next": "rsa_verification",
                     "message": "Quel âge avez-vous ?",
@@ -428,6 +429,19 @@ class EligibilityEvaluator:
                 "message": "État non reconnu dans l'arbre de décision. Dites 'Oui' pour commencer l'évaluation d'éligibilité.",
                 "is_final": False,
             }
+        # ********** VOICI OÙ VOUS DEVEZ AJOUTER LE CODE **********
+        # Gérer spécifiquement l'état pre_consent
+        if current_state == "pre_consent":
+            # Pour pre_consent, on passe toujours à consent quelle que soit la réponse
+            return {
+                "next_state": "consent",
+                "message": state_def.get(
+                    "message",
+                    "Avant de commencer, je dois recueillir quelques informations...",
+                ),
+                "is_final": False,
+            }
+        # ********** FIN DU CODE À AJOUTER **********
 
         print(f"État actuel: {current_state}, définition: {json.dumps(state_def)}")
 

@@ -1,12 +1,16 @@
 {
   "states": {
     "initial": {
+      "next": "pre_consent",
+      "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !"
+    },
+    "pre_consent": {
       "next": "consent",
-      "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?"
+      "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?"
     },
     "consent": {
       "next": "age_verification",
-      "message": "Bonjour, je suis CODEE, votre assistant virtuel. Je suis là pour vous aider à déterminer votre éligibilité aux programmes sociaux. Quelques questions simples me permettront de vous orienter vers le dispositif le plus adapté à votre situation.",
+      "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
       "responses": {
         "yes": {
           "next": "age_verification",
