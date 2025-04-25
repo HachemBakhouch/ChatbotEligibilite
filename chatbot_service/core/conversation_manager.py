@@ -316,7 +316,7 @@ class ConversationManager:
             if current_state == "initial":
                 return {
                     "next_state": "pre_consent",
-                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
+                    "message": "Super, je suis ravi de pouvoir t'accompagner aujourd'hui ! 😊",
                     "is_final": False,
                 }
             elif current_state == "pre_consent":

@@ -2,7 +2,7 @@
   "states": {
     "initial": {
       "next": "pre_consent",
-      "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?"
+      "message": "Super, je suis ravi de pouvoir t'accompagner aujourd'hui ! 😊"
     },
     "pre_consent": {
       "next": "consent",
