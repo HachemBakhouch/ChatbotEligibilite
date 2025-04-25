@@ -3,6 +3,7 @@ import requests
 import json
 from datetime import datetime
 from config.config import Config
+from utils.banned_words_filter import BannedWordsFilter
 
 
 class ConversationManager:
@@ -21,6 +22,9 @@ class ConversationManager:
             "current_state": "initial",
             "eligibility_result": None,
             "user_data": {},  # Storage for user data across the conversation
+            "word_filter": BannedWordsFilter(
+                max_violations=2
+            ),  # Instance unique par conversation
         }
 
         return conversation_id
@@ -36,16 +40,97 @@ class ConversationManager:
 
         conversation = self.conversations[conversation_id]
 
+        # Vérifier les mots interdits AVANT d'ajouter le message à l'historique
+        word_filter = conversation["word_filter"]
+        filter_result = word_filter.check_message(conversation_id, text)
+
+        # Si la conversation doit être terminée en raison de violations répétées
+        if filter_result["should_terminate"]:
+            termination_message = word_filter.get_termination_message()
+
+            # Ajouter le message utilisateur et la réponse du bot à l'historique
+            conversation["messages"].append(
+                {
+                    "role": "user",
+                    "content": text,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+            conversation["messages"].append(
+                {
+                    "role": "bot",
+                    "content": termination_message,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+            conversation["current_state"] = "terminated"
+
+            return {
+                "message": termination_message,
+                "conversation_id": conversation_id,
+                "is_final": True,
+                "contains_banned_words": True,
+                "banned_words_found": filter_result["banned_words_found"],
+            }
+
+        # Si c'est une première violation (avertissement)
+        if filter_result["should_warn"]:
+            warning_message = word_filter.get_warning_message()
+
+            # Ajouter le message utilisateur avec l'avertissement
+            conversation["messages"].append(
+                {
+                    "role": "user",
+                    "content": text,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+            # Continuer le traitement normal mais ajouter l'avertissement
+            nlp_response = self._process_with_nlp(text)
+            decision_response = self._process_with_decision_tree(
+                conversation_id,
+                conversation["current_state"],
+                nlp_response,
+                conversation.get("user_data", {}),
+            )
+
+            # Combiner l'avertissement avec la réponse normale
+            combined_message = (
+                f"{warning_message}\n\n{decision_response.get('message', '')}"
+            )
+
+            conversation["messages"].append(
+                {
+                    "role": "bot",
+                    "content": combined_message,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+            conversation["current_state"] = decision_response.get(
+                "next_state", conversation["current_state"]
+            )
+
+            return {
+                "message": combined_message,
+                "conversation_id": conversation_id,
+                "is_final": decision_response.get("is_final", False),
+                "contains_banned_words": True,
+                "banned_words_found": filter_result["banned_words_found"],
+            }
+
+        # Traitement normal si aucun mot interdit n'est trouvé
         # Add user message to history
         conversation["messages"].append(
             {"role": "user", "content": text, "timestamp": datetime.now().isoformat()}
         )
 
         # NOUVELLE LOGIQUE: Détecter si l'utilisateur change d'avis après un refus
-        # Détecter si l'utilisateur change d'avis après un refus initial
         if conversation["current_state"] == "end":
             text_lower = text.lower()
-            # Mots-clés pour détecter un changement d'avis
             change_of_mind_keywords = [
                 "oui",
                 "d'accord",
@@ -57,10 +142,8 @@ class ConversationManager:
 
             if any(keyword in text_lower for keyword in change_of_mind_keywords):
                 print("*** Utilisateur a changé d'avis après un refus initial ***")
-                # Réinitialiser l'état pour revenir à l'âge
                 conversation["current_state"] = "age_verification"
 
-                # Ajouter directement la réponse
                 response_message = "Parfait ! Pour mieux t'orienter, peux-tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊"
                 conversation["messages"].append(
                     {
