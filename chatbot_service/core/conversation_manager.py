@@ -328,15 +328,15 @@ class ConversationManager:
             print("Using fallback decision tree logic")
 
             # Consentement
-            # Consentement
+            # Flux de conversation
             if current_state == "initial":
                 return {
-                    "next_state": "pre_consent",  # Changé de "consent" à "pre_consent"
+                    "next_state": "pre_consent",
                     "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
                     "is_final": False,
                 }
             elif current_state == "pre_consent":
-                # Nouvel état intermédiaire qui passe toujours au consentement quelle que soit la réponse
+                # Passer toujours au consentement quelle que soit la réponse
                 return {
                     "next_state": "consent",
                     "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
@@ -344,17 +344,27 @@ class ConversationManager:
                 }
             elif current_state == "consent":
                 intent = nlp_data.get("intent", "").lower() if nlp_data else ""
-                if intent == "yes":
+                text = nlp_data.get("text", "").lower() if nlp_data else ""
+
+                # Vérification plus simple pour oui/non
+                if "oui" in text or "yes" in text or intent == "yes":
                     return {
                         "next_state": "age_verification",
                         "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
                         "is_final": False,
                     }
-                else:
+                elif "non" in text or "no" in text or intent == "no":
                     return {
                         "next_state": "end",
                         "message": "Je comprends. Sans ces informations, je ne peux pas déterminer votre éligibilité. N'hésitez pas à revenir si vous changez d'avis.",
                         "is_final": True,
+                    }
+                else:
+                    # Redemander en cas de réponse ambiguë
+                    return {
+                        "next_state": "consent",
+                        "message": "Je n'ai pas compris votre réponse. Pourriez-vous répondre simplement par oui ou par non ?",
+                        "is_final": False,
                     }
 
             # Vérification de l'âge

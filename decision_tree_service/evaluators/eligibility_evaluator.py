@@ -66,16 +66,16 @@ class EligibilityEvaluator:
         return {
             "states": {
                 "initial": {
-                    "next": "pre_consent",  # Changé de "consent" à "pre_consent"
-                    "message": "Bonjour et ravi de te voir ici ! Je suis CODEE, ton assistant intelligent prêt à t'aider. 🚀 Je suis là pour toi !",
+                    "next": "pre_consent",
+                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
                 },
                 "pre_consent": {
                     "next": "consent",
-                    "message": "Bien sûr, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
+                    "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
                 },
                 "consent": {
                     "next": "age_verification",
-                    "message": "Avant de commencer, je dois recueillir quelques informations personnelles pour déterminer votre éligibilité. Acceptez-vous que vos données soient traitées dans le cadre de cette évaluation ?",
+                    "message": "Pour mieux t'orienter, peux tu me communiquer ton âge ? Cela m'aidera à te fournir des informations adaptées à ton profil. 😊",
                     "responses": {
                         "yes": {
                             "next": "age_verification",
@@ -88,6 +88,7 @@ class EligibilityEvaluator:
                         },
                     },
                 },
+                # ... le reste reste identique
                 # ... le reste des états reste identique
                 "age_verification": {
                     "next": "rsa_verification",
