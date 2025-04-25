@@ -37,6 +37,9 @@ def start_conversation():
         # Get initial message
         initial_message = conversation_manager.get_welcome_message()
 
+        # Assurez-vous que l'état est bien "initial" et non déjà en transition
+        conversation_manager.conversations[conversation_id]["current_state"] = "initial"
+
         return (
             jsonify({"conversation_id": conversation_id, "message": initial_message}),
             200,
