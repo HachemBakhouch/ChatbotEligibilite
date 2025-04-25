@@ -67,7 +67,7 @@ class EligibilityEvaluator:
             "states": {
                 "initial": {
                     "next": "pre_consent",
-                    "message": "Super, je suis ravi de pouvoir t'accompagner aujourd'hui ! 😊",
+                    "message": "Merci pour ton message, je suis là pour t'aider ! 😊\nDonne moi plus de détails sur ton besoin?",
                 },
                 "pre_consent": {
                     "next": "consent",
