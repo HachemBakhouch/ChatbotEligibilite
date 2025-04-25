@@ -88,36 +88,20 @@ class ConversationManager:
                 }
             )
 
-            # Continuer le traitement normal mais ajouter l'avertissement
-            nlp_response = self._process_with_nlp(text)
-            decision_response = self._process_with_decision_tree(
-                conversation_id,
-                conversation["current_state"],
-                nlp_response,
-                conversation.get("user_data", {}),
-            )
-
-            # Combiner l'avertissement avec la réponse normale
-            combined_message = (
-                f"{warning_message}\n\n{decision_response.get('message', '')}"
-            )
-
+            # IMPORTANT: Ne pas continuer le traitement normal, juste retourner l'avertissement
             conversation["messages"].append(
                 {
                     "role": "bot",
-                    "content": combined_message,
+                    "content": warning_message,
                     "timestamp": datetime.now().isoformat(),
                 }
             )
 
-            conversation["current_state"] = decision_response.get(
-                "next_state", conversation["current_state"]
-            )
-
+            # Garder le même état pour redemander la ville
             return {
-                "message": combined_message,
+                "message": warning_message,
                 "conversation_id": conversation_id,
-                "is_final": decision_response.get("is_final", False),
+                "is_final": False,
                 "contains_banned_words": True,
                 "banned_words_found": filter_result["banned_words_found"],
             }
